@@ -6,6 +6,7 @@ import { Heading, Eyebrow } from '@/components/ui/Heading'
 import { buttonVariants } from '@/components/ui/Button'
 import { Countdown } from '@/components/public/Countdown'
 import { OccasionCard } from '@/components/public/OccasionCard'
+import { Reveal } from '@/components/ui/Reveal'
 
 const STEPS = [
   { n: 'I', text: 'Escolha um presente' },
@@ -110,21 +111,24 @@ export default async function HomePage() {
       {/* ---------- Nossos Momentos ---------- */}
       {occasions && occasions.length > 0 && (
         <Section tone="canvas">
-          <div className="mb-10 flex flex-col gap-2 sm:mb-14">
-            <Eyebrow>Nossos momentos</Eyebrow>
-            <Heading as="h2">Dois encontros, um só motivo</Heading>
-          </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {occasions.map((occasion) => (
-              <OccasionCard key={occasion.id} occasion={occasion} />
-            ))}
-          </div>
+          <Reveal>
+            <div className="mb-10 flex flex-col gap-2 sm:mb-14">
+              <Eyebrow>Nossos momentos</Eyebrow>
+              <Heading as="h2">Dois encontros, um só motivo</Heading>
+            </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              {occasions.map((occasion) => (
+                <OccasionCard key={occasion.id} occasion={occasion} />
+              ))}
+            </div>
+          </Reveal>
         </Section>
       )}
 
       {/* ---------- Lista de presentes ---------- */}
       {listsWithCounts.length > 0 && (
         <Section tone="canvas-alt" id="lista-de-presentes">
+          <Reveal>
           <div className="mb-10 flex flex-col gap-2 sm:mb-14">
             <Eyebrow>Lista de presentes</Eyebrow>
             <Heading as="h2">Escolha uma lista</Heading>
@@ -161,23 +165,26 @@ export default async function HomePage() {
               )
             })}
           </div>
+          </Reveal>
         </Section>
       )}
 
       {/* ---------- Como funciona ---------- */}
       <Section tone="canvas">
-        <div className="mb-10 flex flex-col gap-2 sm:mb-14">
-          <Eyebrow>Como funciona</Eyebrow>
-          <Heading as="h2">Quatro passos, sem complicação</Heading>
-        </div>
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-          {STEPS.map((step) => (
-            <div key={step.n}>
-              <span className="font-display text-2xl italic text-accent-strong">{step.n}.</span>
-              <p className="mt-1.5 text-sm text-ink-soft">{step.text}</p>
-            </div>
-          ))}
-        </div>
+        <Reveal>
+          <div className="mb-10 flex flex-col gap-2 sm:mb-14">
+            <Eyebrow>Como funciona</Eyebrow>
+            <Heading as="h2">Quatro passos, sem complicação</Heading>
+          </div>
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+            {STEPS.map((step) => (
+              <div key={step.n}>
+                <span className="font-display text-2xl italic text-accent-strong">{step.n}.</span>
+                <p className="mt-1.5 text-sm text-ink-soft">{step.text}</p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </Section>
 
       {/* ---------- Footer ---------- */}

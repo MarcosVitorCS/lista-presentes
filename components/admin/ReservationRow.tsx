@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import { confirmReservation, cancelReservation } from '@/app/actions/reservations'
 import { Badge, type BadgeTone } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { useActionToast } from '@/components/ui/Toast'
 import type { Database } from '@/types/database'
 
 type ReservationWithRelations = Database['public']['Tables']['reservations']['Row'] & {
@@ -37,6 +38,8 @@ export function ReservationRow({
 }) {
   const [confirmState, confirmAction, confirmPending] = useActionState(confirmReservation, undefined)
   const [cancelState, cancelAction, cancelPending] = useActionState(cancelReservation, undefined)
+  useActionToast(confirmState, 'PIX confirmado!')
+  useActionToast(cancelState, 'Reserva cancelada.')
   const busy = confirmPending || cancelPending
 
   return (

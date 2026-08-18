@@ -41,7 +41,7 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-[var(--radius)] border border-canvas-line bg-canvas p-4">
+    <div className="flex flex-col gap-3 rounded-[var(--radius)] border border-canvas-line bg-canvas p-4 transition-colors duration-200 hover:border-accent-strong/50">
       <div>
         <h2 className="font-sans font-semibold text-ink">{item.name}</h2>
         {item.description && <p className="text-sm text-ink-soft">{item.description}</p>}

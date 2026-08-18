@@ -5,6 +5,7 @@ import { createOccasion, updateOccasion } from '@/app/actions/occasions'
 import { Input, Textarea, Label } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { useActionToast } from '@/components/ui/Toast'
 import type { Database } from '@/types/database'
 
 type OccasionRow = Database['public']['Tables']['event_occasions']['Row']
@@ -60,6 +61,7 @@ function GiftListSelect({
 
 function NewOccasionForm({ eventId, giftLists }: { eventId: string; giftLists: GiftListRow[] }) {
   const [state, action, pending] = useActionState(createOccasion, undefined)
+  useActionToast(state, 'Ocasião adicionada!')
 
   return (
     <form action={action}>
@@ -127,6 +129,7 @@ function OccasionForm({
   giftLists: GiftListRow[]
 }) {
   const [state, action, pending] = useActionState(updateOccasion, undefined)
+  useActionToast(state, 'Ocasião salva!')
 
   return (
     <form action={action}>

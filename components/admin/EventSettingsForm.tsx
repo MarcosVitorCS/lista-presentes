@@ -5,6 +5,7 @@ import { updateEventSettings } from '@/app/actions/event'
 import { Input, Textarea, Label } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { useActionToast } from '@/components/ui/Toast'
 import type { Database } from '@/types/database'
 
 type EventRow = Database['public']['Tables']['events']['Row']
@@ -14,6 +15,7 @@ const fileInputClass =
 
 export function EventSettingsForm({ event }: { event: EventRow }) {
   const [state, action, pending] = useActionState(updateEventSettings, undefined)
+  useActionToast(state, 'Configurações salvas!')
 
   return (
     <form action={action} className="flex max-w-xl flex-col gap-6">
@@ -127,7 +129,6 @@ export function EventSettingsForm({ event }: { event: EventRow }) {
       </Card>
 
       {state?.error && <p className="text-sm text-danger">{state.error}</p>}
-      {state?.success && <p className="text-sm text-success">Salvo!</p>}
 
       <Button type="submit" disabled={pending} className="self-start">
         {pending ? 'Salvando…' : 'Salvar'}

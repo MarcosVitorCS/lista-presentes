@@ -5,6 +5,7 @@ import { createGiftItem, updateGiftItem } from '@/app/actions/catalog'
 import { Input, Textarea, Label } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { useActionToast } from '@/components/ui/Toast'
 import type { Database } from '@/types/database'
 
 type GiftItemRow = Database['public']['Tables']['gift_items']['Row']
@@ -37,6 +38,7 @@ export function GiftItemsManager({
 
 function NewItemForm({ listId, eventId }: { listId: string; eventId: string }) {
   const [state, action, pending] = useActionState(createGiftItem, undefined)
+  useActionToast(state, 'Item adicionado!')
 
   return (
     <form action={action}>
@@ -81,6 +83,7 @@ function NewItemForm({ listId, eventId }: { listId: string; eventId: string }) {
 
 function ItemRow({ item, eventId }: { item: GiftItemRow; eventId: string }) {
   const [state, action, pending] = useActionState(updateGiftItem, undefined)
+  useActionToast(state, 'Item salvo!')
 
   return (
     <form action={action}>

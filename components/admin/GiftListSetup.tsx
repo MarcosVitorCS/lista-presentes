@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import { createGiftList } from '@/app/actions/catalog'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { useActionToast } from '@/components/ui/Toast'
 
 export function GiftListSetup({
   eventId,
@@ -17,6 +18,7 @@ export function GiftListSetup({
   name: string
 }) {
   const [state, action, pending] = useActionState(createGiftList, undefined)
+  useActionToast(state, 'Lista criada!')
 
   return (
     <form action={action}>

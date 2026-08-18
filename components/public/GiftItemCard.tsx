@@ -40,7 +40,7 @@ export function GiftItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-[var(--radius)] border border-canvas-line bg-canvas p-4">
+    <div className="flex flex-col gap-3 rounded-[var(--radius)] border border-canvas-line bg-canvas p-4 transition-colors duration-200 hover:border-accent-strong/50">
       {item.image_url && (
         // eslint-disable-next-line @next/next/no-img-element -- imagem vinda do Supabase Storage
         <img src={item.image_url} alt={item.name} className="h-40 w-full rounded-[var(--radius)] object-cover" />

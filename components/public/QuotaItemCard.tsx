@@ -42,6 +42,11 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
 
   return (
     <div className="flex flex-col gap-3 rounded-[var(--radius)] border border-canvas-line bg-canvas p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-strong/50 hover:shadow-[0_8px_24px_-12px_rgba(30,50,41,0.25)]">
+      {item.image_url && (
+        // eslint-disable-next-line @next/next/no-img-element -- imagem vinda do Supabase Storage
+        <img src={item.image_url} alt={item.name} className="h-40 w-full rounded-[var(--radius)] object-cover" />
+      )}
+
       <div>
         <h2 className="font-sans font-semibold text-ink">{item.name}</h2>
         {item.description && <p className="text-sm text-ink-soft">{item.description}</p>}

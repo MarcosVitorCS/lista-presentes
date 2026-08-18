@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { cx } from './utils'
 
 /**
@@ -8,8 +8,19 @@ import { cx } from './utils'
  * sem lib). Dispara uma vez só — não re-anima ao rolar pra cima e voltar,
  * o que ficaria repetitivo. globals.css já reduz a animação a quase-zero
  * quando prefers-reduced-motion está ativo.
+ *
+ * `delayMs` permite escalonar vários Reveal próximos (ex.: cartões de uma
+ * grade) pra revelarem em cascata em vez de todos de uma vez.
  */
-export function Reveal({ children, className }: { children: ReactNode; className?: string }) {
+export function Reveal({
+  children,
+  className,
+  delayMs = 0,
+}: {
+  children: ReactNode
+  className?: string
+  delayMs?: number
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
 
@@ -29,8 +40,11 @@ export function Reveal({ children, className }: { children: ReactNode; className
     return () => observer.disconnect()
   }, [])
 
+  const style: CSSProperties | undefined =
+    visible && delayMs ? { animationDelay: `${delayMs}ms` } : undefined
+
   return (
-    <div ref={ref} className={cx(visible ? 'animate-fade-in-up' : 'opacity-0', className)}>
+    <div ref={ref} style={style} className={cx(visible ? 'animate-fade-in-up' : 'opacity-0', className)}>
       {children}
     </div>
   )

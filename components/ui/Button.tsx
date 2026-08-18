@@ -5,7 +5,7 @@ export type ButtonVariant = "solid" | "accent" | "line" | "ghost-dark";
 export type ButtonSize = "md" | "sm";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-[var(--radius)] font-sans text-sm font-semibold tracking-wide transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas cursor-pointer";
+  "inline-flex items-center justify-center gap-2 rounded-[var(--radius)] font-sans text-sm font-semibold tracking-wide transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas cursor-pointer";
 
 // accent usa text-ink-deep (não text-on-deep): dourado + creme pálido dá
 // 2.43:1 (reprovado); dourado + verde-tinta dá 4.77:1 — ver auditoria de

@@ -65,10 +65,40 @@
   --radius: var(--radius-base);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  position: relative;
+}
+
+/*
+ * Grão sutil (textura de papel) sobre o site inteiro — resolve o feedback de
+ * "tela lisa" sem cair no clichê de padrão floral/clip-art de convite de
+ * casamento genérico. SVG gerado por feTurbulence, não é uma imagem
+ * baixada; opacidade bem baixa (a intenção é ser sentida, não vista).
+ * pointer-events:none pra nunca interceptar clique/toque.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Brilho radial dourado do hero — estava no protótipo aprovado e se perdeu
+   na implementação da Fase 3 (a seção virou bg-ink-deep chapado). Restaurado
+   junto com o pedido de dar mais riqueza visual às seções. */
+.hero-glow {
+  background-image: radial-gradient(120% 90% at 82% -10%, rgba(184, 147, 90, 0.16), transparent 60%);
 }
 
 @keyframes countdown-flip {

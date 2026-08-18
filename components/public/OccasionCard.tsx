@@ -22,7 +22,7 @@ export function OccasionCard({ occasion }: { occasion: Occasion }) {
   const time = formatTime(occasion.occasion_time)
 
   return (
-    <div className="flex flex-col gap-4 rounded-[var(--radius)] border border-canvas-line bg-canvas p-7 transition-colors duration-200 hover:border-accent-strong/50">
+    <div className="flex flex-col gap-4 rounded-[var(--radius)] border border-canvas-line bg-canvas p-7 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-strong/50 hover:shadow-[0_8px_24px_-12px_rgba(30,50,41,0.25)]">
       {occasion.image_url ? (
         // eslint-disable-next-line @next/next/no-img-element -- vem do Supabase Storage, dimensões variáveis
         <img

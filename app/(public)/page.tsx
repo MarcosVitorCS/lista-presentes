@@ -65,7 +65,7 @@ export default async function HomePage() {
   return (
     <>
       {/* ---------- Hero ---------- */}
-      <Section tone="ink-deep" className="py-20 sm:py-32">
+      <Section tone="ink-deep" className="hero-glow py-20 sm:py-32">
         <div className="flex flex-col items-center gap-7 text-center">
           {event.image_url && (
             // eslint-disable-next-line @next/next/no-img-element -- vem do Supabase Storage, dimensão fixa via CSS
@@ -124,12 +124,14 @@ export default async function HomePage() {
               <Eyebrow>Nossos momentos</Eyebrow>
               <Heading as="h2">Dois encontros, um só motivo</Heading>
             </div>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              {occasions.map((occasion) => (
-                <OccasionCard key={occasion.id} occasion={occasion} />
-              ))}
-            </div>
           </Reveal>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {occasions.map((occasion, i) => (
+              <Reveal key={occasion.id} delayMs={i * 90}>
+                <OccasionCard occasion={occasion} />
+              </Reveal>
+            ))}
+          </div>
         </Section>
       )}
 
@@ -137,11 +139,12 @@ export default async function HomePage() {
       {listsWithCounts.length > 0 && (
         <Section tone="canvas-alt" id="lista-de-presentes">
           <Reveal>
-          <div className="mb-10 flex flex-col gap-2 sm:mb-14">
-            <Eyebrow>Lista de presentes</Eyebrow>
-            <Heading as="h2">Escolha uma lista</Heading>
-          </div>
-          <div className="flex flex-col overflow-hidden rounded-[var(--radius)] border border-canvas-line">
+            <div className="mb-10 flex flex-col gap-2 sm:mb-14">
+              <Eyebrow>Lista de presentes</Eyebrow>
+              <Heading as="h2">Escolha uma lista</Heading>
+            </div>
+          </Reveal>
+          <Reveal delayMs={90} className="flex flex-col overflow-hidden rounded-[var(--radius)] border border-canvas-line">
             {listsWithCounts.map((list, i) => {
               const href = list.type === 'quota' ? '/casamento' : '/cha-de-cozinha'
               const Icon = list.type === 'quota' ? Heart : Gift
@@ -151,7 +154,7 @@ export default async function HomePage() {
                   href={href}
                   className={`group flex items-center gap-4 bg-canvas px-5 py-5 transition-colors hover:bg-canvas-alt sm:px-7 ${i > 0 ? 'border-t border-canvas-line' : ''}`}
                 >
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-canvas-alt text-accent-strong">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-canvas-alt text-accent-strong transition-transform duration-300 group-hover:scale-110">
                     <Icon size={18} strokeWidth={1.6} aria-hidden="true" />
                   </span>
                   <span className="flex-1">
@@ -172,7 +175,6 @@ export default async function HomePage() {
                 </a>
               )
             })}
-          </div>
           </Reveal>
         </Section>
       )}
@@ -184,15 +186,15 @@ export default async function HomePage() {
             <Eyebrow>Como funciona</Eyebrow>
             <Heading as="h2">Quatro passos, sem complicação</Heading>
           </div>
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-            {STEPS.map((step) => (
-              <div key={step.n}>
-                <span className="font-display text-2xl italic text-accent-strong">{step.n}.</span>
-                <p className="mt-1.5 text-sm text-ink-soft">{step.text}</p>
-              </div>
-            ))}
-          </div>
         </Reveal>
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+          {STEPS.map((step, i) => (
+            <Reveal key={step.n} delayMs={i * 80}>
+              <span className="font-display text-2xl italic text-accent-strong">{step.n}.</span>
+              <p className="mt-1.5 text-sm text-ink-soft">{step.text}</p>
+            </Reveal>
+          ))}
+        </div>
       </Section>
 
       {/* ---------- Footer ---------- */}

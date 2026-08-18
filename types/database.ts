@@ -33,6 +33,7 @@ export type Database = {
           pix_key_type: PixKeyType | null
           pix_owner_name: string | null
           pix_qr_code_url: string | null
+          image_url: string | null
           is_active: boolean
           created_at: string
           updated_at: string
@@ -47,12 +48,56 @@ export type Database = {
           pix_key_type?: PixKeyType | null
           pix_owner_name?: string | null
           pix_qr_code_url?: string | null
+          image_url?: string | null
           is_active?: boolean
           created_at?: string
           updated_at?: string
         }
         Update: Partial<Database['public']['Tables']['events']['Insert']>
         Relationships: []
+      }
+      event_occasions: {
+        Row: {
+          id: string
+          event_id: string
+          gift_list_id: string | null
+          slug: string
+          name: string
+          occasion_date: string | null
+          occasion_time: string | null
+          location_name: string | null
+          address: string | null
+          google_maps_url: string | null
+          description: string | null
+          image_url: string | null
+          is_active: boolean
+          display_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          gift_list_id?: string | null
+          slug: string
+          name: string
+          occasion_date?: string | null
+          occasion_time?: string | null
+          location_name?: string | null
+          address?: string | null
+          google_maps_url?: string | null
+          description?: string | null
+          image_url?: string | null
+          is_active?: boolean
+          display_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['event_occasions']['Insert']>
+        Relationships: [
+          { foreignKeyName: 'event_occasions_event_id_fkey'; columns: ['event_id']; referencedRelation: 'events'; referencedColumns: ['id'] },
+          { foreignKeyName: 'event_occasions_gift_list_id_fkey'; columns: ['gift_list_id']; referencedRelation: 'gift_lists'; referencedColumns: ['id'] },
+        ]
       }
       admin_profiles: {
         Row: { id: string; full_name: string | null; created_at: string }

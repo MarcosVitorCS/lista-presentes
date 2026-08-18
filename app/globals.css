@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
+/*
+ * Identidade "jardim ao entardecer" — aprovada na fase de design.
+ * Mundo visual único e deliberado (não segue dark/light do SO): pergaminho
+ * quente como fundo predominante, tinta verde profunda para hero/rodapé,
+ * latão como único acento. Ver protótipo aprovado para referência.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-ink-deep: #1e3229;
+  --color-ink-deep-2: #263d32;
+  --color-ink: #2b2620;
+  --color-ink-soft: #6b5f4f;
+  --color-canvas: #f6f1e7;
+  --color-canvas-alt: #eee6d5;
+  --color-canvas-line: #e2d6bc;
+  --color-accent: #b8935a;
+  --color-accent-strong: #9c7a45;
+  --color-on-deep: #f3ecdd;
+  --color-on-deep-soft: #c9bc9f;
+
+  /* Semânticas: separadas do acento de marca, nunca usar --color-accent pra status. */
+  --color-success: #4b7a5e;
+  --color-success-soft: #e3ede5;
+  --color-warning: #b3803a;
+  --color-warning-soft: #f3e8d4;
+  --color-danger: #ab5940;
+  --color-danger-soft: #f2e2dc;
+
+  --radius-base: 0.25rem;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-ink-deep: var(--color-ink-deep);
+  --color-ink-deep-2: var(--color-ink-deep-2);
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-canvas: var(--color-canvas);
+  --color-canvas-alt: var(--color-canvas-alt);
+  --color-canvas-line: var(--color-canvas-line);
+  --color-accent: var(--color-accent);
+  --color-accent-strong: var(--color-accent-strong);
+  --color-on-deep: var(--color-on-deep);
+  --color-on-deep-soft: var(--color-on-deep-soft);
+  --color-success: var(--color-success);
+  --color-success-soft: var(--color-success-soft);
+  --color-warning: var(--color-warning);
+  --color-warning-soft: var(--color-warning-soft);
+  --color-danger: var(--color-danger);
+  --color-danger-soft: var(--color-danger-soft);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-display: var(--font-fraunces), "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-sans: var(--font-instrument-sans), "Segoe UI", system-ui, sans-serif;
+
+  --radius: var(--radius-base);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

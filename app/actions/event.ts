@@ -26,6 +26,7 @@ export async function updateEventSettings(
     eventId: formData.get('eventId'),
     name: formData.get('name'),
     eventDate: formData.get('eventDate'),
+    description: formData.get('description'),
     pixKey: formData.get('pixKey'),
     pixKeyType: formData.get('pixKeyType'),
     pixOwnerName: formData.get('pixOwnerName'),
@@ -40,6 +41,7 @@ export async function updateEventSettings(
   const updates: EventUpdate = {
     name: parsed.data.name,
     event_date: parsed.data.eventDate ?? null,
+    description: parsed.data.description ?? null,
     pix_key: parsed.data.pixKey ?? null,
     pix_key_type: parsed.data.pixKeyType ?? null,
     pix_owner_name: parsed.data.pixOwnerName ?? null,
@@ -59,6 +61,19 @@ export async function updateEventSettings(
   }
   // Sem arquivo novo nem "remover" marcado: pix_qr_code_url não entra no
   // update, o QR Code atual permanece intacto.
+
+  const heroFile = formData.get('imageFile')
+  const removeHero = formData.get('removeImage') === 'on'
+
+  if (heroFile instanceof File && heroFile.size > 0) {
+    try {
+      updates.image_url = await uploadEventImage(supabase, parsed.data.eventId, heroFile)
+    } catch (err) {
+      return { error: err instanceof InvalidImageError ? err.message : 'Não foi possível enviar a imagem.' }
+    }
+  } else if (removeHero) {
+    updates.image_url = null
+  }
 
   const { error } = await supabase.from('events').update(updates).eq('id', parsed.data.eventId)
 

@@ -34,6 +34,12 @@ export default async function DashboardPage() {
       highlight: false,
     },
     {
+      href: '/admin/dashboard/confirmacoes',
+      title: 'Confirmações',
+      description: 'Convidados e confirmação de presença (RSVP).',
+      highlight: false,
+    },
+    {
       href: '/admin/dashboard/reservas',
       title: 'Reservas',
       description: pendingCount

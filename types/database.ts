@@ -18,6 +18,7 @@ export type ContactType = 'whatsapp' | 'email'
 export type FulfillmentMethod = 'physical' | 'pix'
 export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled'
 export type EventAdminRole = 'owner' | 'editor'
+export type RsvpStatus = 'pending' | 'confirmed' | 'declined'
 
 export type Database = {
   public: {
@@ -39,6 +40,7 @@ export type Database = {
           facebook_url: string | null
           youtube_url: string | null
           whatsapp_url: string | null
+          allow_rsvp: boolean
           is_active: boolean
           created_at: string
           updated_at: string
@@ -59,6 +61,7 @@ export type Database = {
           facebook_url?: string | null
           youtube_url?: string | null
           whatsapp_url?: string | null
+          allow_rsvp?: boolean
           is_active?: boolean
           created_at?: string
           updated_at?: string
@@ -197,22 +200,81 @@ export type Database = {
           name: string
           contact: string
           contact_type: ContactType
+          // NULL = nunca foi convidado de RSVP (ex.: só se identificou pra
+          // reservar presente). Preenchido só via create_invitation.
+          max_party_size: number | null
           created_at: string
         }
-        // Escrita real só acontece via RPC identify_guest — este Insert
-        // existe só para completude de tipo, não representa um caminho
-        // liberado por GRANT.
+        // Escrita real só acontece via RPC (identify_guest ou
+        // create_invitation) — este Insert existe só para completude de
+        // tipo, não representa um caminho liberado por GRANT.
         Insert: {
           id?: string
           event_id: string
           name: string
           contact: string
           contact_type: ContactType
+          max_party_size?: number | null
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['guests']['Insert']>
         Relationships: [
           { foreignKeyName: 'guests_event_id_fkey'; columns: ['event_id']; referencedRelation: 'events'; referencedColumns: ['id'] },
+        ]
+      }
+      invitations: {
+        Row: {
+          id: string
+          guest_id: string
+          event_id: string
+          token_hash: string
+          created_at: string
+          last_accessed_at: string | null
+        }
+        // Escrita real só via RPC (create_invitation/regenerate_invitation).
+        Insert: {
+          id?: string
+          guest_id: string
+          event_id: string
+          token_hash: string
+          created_at?: string
+          last_accessed_at?: string | null
+        }
+        Update: Partial<Database['public']['Tables']['invitations']['Insert']>
+        Relationships: [
+          { foreignKeyName: 'invitations_guest_id_fkey'; columns: ['guest_id']; referencedRelation: 'guests'; referencedColumns: ['id'] },
+          { foreignKeyName: 'invitations_event_id_fkey'; columns: ['event_id']; referencedRelation: 'events'; referencedColumns: ['id'] },
+        ]
+      }
+      rsvp_responses: {
+        Row: {
+          id: string
+          guest_id: string
+          event_id: string
+          status: RsvpStatus
+          party_size: number | null
+          notes: string | null
+          responded_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        // Escrita real só via RPC (create_invitation cria a linha 'pending';
+        // submit_rsvp é quem atualiza status/party_size/notes).
+        Insert: {
+          id?: string
+          guest_id: string
+          event_id: string
+          status?: RsvpStatus
+          party_size?: number | null
+          notes?: string | null
+          responded_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['rsvp_responses']['Insert']>
+        Relationships: [
+          { foreignKeyName: 'rsvp_responses_guest_id_fkey'; columns: ['guest_id']; referencedRelation: 'guests'; referencedColumns: ['id'] },
+          { foreignKeyName: 'rsvp_responses_event_id_fkey'; columns: ['event_id']; referencedRelation: 'events'; referencedColumns: ['id'] },
         ]
       }
       reservations: {
@@ -295,6 +357,50 @@ export type Database = {
       cancel_reservation: {
         Args: { p_reservation_id: string }
         Returns: Database['public']['Tables']['reservations']['Row']
+      }
+      create_invitation: {
+        Args: {
+          p_name: string
+          p_contact: string
+          p_contact_type: ContactType
+          p_max_party_size: number
+          p_token_hash: string
+        }
+        // Função é returns table(...) (set-returning) no Postgres — o wire
+        // format do PostgREST é sempre um array; tipado como array aqui de
+        // propósito pra .maybeSingle() (chamado no client) inferir o unwrap
+        // corretamente (ver PostgrestTransformBuilder.maybeSingle<T>()).
+        // out_/prefixo: nomes de coluna de saída não podem colidir com
+        // guest_id/invitation_id usados dentro do corpo da função (ver
+        // comentário na migration 00006 — "column reference is ambiguous").
+        Returns: { out_guest_id: string; out_invitation_id: string }[]
+      }
+      regenerate_invitation: {
+        Args: { p_guest_id: string; p_token_hash: string }
+        Returns: Database['public']['Tables']['invitations']['Row']
+      }
+      resolve_invitation: {
+        Args: { p_token_hash: string }
+        // Idem create_invitation: returns table(...), wire format é array,
+        // sempre chamada com .maybeSingle() no client.
+        Returns: {
+          guest_id: string
+          guest_name: string
+          event_id: string
+          max_party_size: number
+          status: RsvpStatus
+          party_size: number | null
+          notes: string | null
+        }[]
+      }
+      submit_rsvp: {
+        Args: {
+          p_token_hash: string
+          p_status: 'confirmed' | 'declined'
+          p_party_size: number | null
+          p_notes: string | null
+        }
+        Returns: Database['public']['Tables']['rsvp_responses']['Row']
       }
     }
     Enums: Record<string, never>

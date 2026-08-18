@@ -136,6 +136,21 @@ export function EventSettingsForm({ event }: { event: EventRow }) {
         </div>
       </Card>
 
+      <Card tone="canvas-alt" className="flex flex-col gap-3">
+        <div>
+          <p className="text-sm font-semibold text-ink">Confirmação de presença (RSVP)</p>
+          <p className="text-xs text-ink-soft">
+            Convidados são criados em <em>Confirmações</em>, no menu do painel — cada um recebe um
+            link individual. Este interruptor só controla se a página principal mostra uma chamada
+            pra isso.
+          </p>
+        </div>
+        <label className="flex items-center gap-2 text-sm text-ink">
+          <input type="checkbox" name="allowRsvp" defaultChecked={event.allow_rsvp} />
+          Mostrar chamada de confirmação de presença na página principal
+        </label>
+      </Card>
+
       <Card tone="canvas-alt" className="flex flex-col gap-4">
         <div>
           <p className="text-sm font-semibold text-ink">Redes sociais</p>

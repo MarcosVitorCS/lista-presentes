@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: '/admin/dashboard', label: 'Painel' },
   { href: '/admin/dashboard/cha-de-cozinha', label: 'Chá de Cozinha' },
   { href: '/admin/dashboard/casamento', label: 'Casamento' },
+  { href: '/admin/dashboard/confirmacoes', label: 'Confirmações' },
   { href: '/admin/dashboard/reservas', label: 'Reservas' },
   { href: '/admin/dashboard/configuracoes', label: 'Configurações' },
 ]

@@ -35,6 +35,7 @@ export async function updateEventSettings(
     facebookUrl: formData.get('facebookUrl'),
     youtubeUrl: formData.get('youtubeUrl'),
     whatsappUrl: formData.get('whatsappUrl'),
+    allowRsvp: formData.get('allowRsvp'),
   })
 
   if (!parsed.success) {
@@ -55,6 +56,7 @@ export async function updateEventSettings(
     facebook_url: parsed.data.facebookUrl ?? null,
     youtube_url: parsed.data.youtubeUrl ?? null,
     whatsapp_url: parsed.data.whatsappUrl ?? null,
+    allow_rsvp: parsed.data.allowRsvp,
   }
 
   const qrFile = formData.get('pixQrCodeFile')

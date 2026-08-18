@@ -134,12 +134,18 @@ function OccasionForm({
   return (
     <form action={action}>
       <Card className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-semibold text-ink">{occasion.name}</p>
-          <label className="flex items-center gap-2 text-sm text-ink-soft">
-            <input type="checkbox" name="isActive" defaultChecked={occasion.is_active} />
-            Ativa (visível na landing)
-          </label>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <label className="flex items-center gap-2 text-sm text-ink-soft">
+              <input type="checkbox" name="isActive" defaultChecked={occasion.is_active} />
+              Ativa (visível na landing)
+            </label>
+            <label className="flex items-center gap-2 text-sm text-ink-soft">
+              <input type="checkbox" name="allowRsvp" defaultChecked={occasion.allow_rsvp} />
+              Confirmação de presença ativada
+            </label>
+          </div>
         </div>
         <input type="hidden" name="occasionId" value={occasion.id} />
         <input type="hidden" name="eventId" value={eventId} />

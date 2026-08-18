@@ -28,10 +28,6 @@ export const updateEventSettingsSchema = z.object({
   facebookUrl: optionalUrl,
   youtubeUrl: optionalUrl,
   whatsappUrl: optionalUrl,
-  // Checkbox: FormData manda 'on' quando marcado, nada quando desmarcado —
-  // z.coerce.boolean() trata string não-vazia como true, null/undefined como
-  // false. Mesmo padrão de isActive em updateOccasionSchema.
-  allowRsvp: z.coerce.boolean(),
 })
 
 export type UpdateEventSettingsInput = z.infer<typeof updateEventSettingsSchema>

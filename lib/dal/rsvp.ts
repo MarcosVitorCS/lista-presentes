@@ -1,22 +1,24 @@
 import 'server-only'
 import { createClient } from '@/lib/supabase/server'
 import { hashInviteToken } from '@/lib/rsvp/token'
+import type { PartyMemberJson } from '@/types/database'
 
 export type ResolvedInvitation = {
+  invitationId: string
   guestId: string
   guestName: string
   eventId: string
-  maxPartySize: number
-  status: 'pending' | 'confirmed' | 'declined'
-  partySize: number | null
+  occasionId: string
+  partyMembers: PartyMemberJson[]
 }
 
 /**
  * Único ponto de leitura de um convite pelo token — usado pela página
  * pública /confirmar/[token]. Hasheia o token e delega tudo (existência,
- * dados do convidado, resposta atual) pra RPC resolve_invitation
- * (SECURITY DEFINER); retorna null se o convite não existir, sem
- * distinguir o motivo (token malformado, revogado ou nunca existiu).
+ * ocasião com RSVP ativo, pessoas autorizadas) pra RPC resolve_invitation
+ * (SECURITY DEFINER); retorna null se o convite não existir OU se o RSVP
+ * tiver sido desativado pra essa ocasião depois do convite criado — a
+ * página trata os dois casos como "não encontrado", sem distinguir motivo.
  */
 export async function resolveInvitationByToken(token: string): Promise<ResolvedInvitation | null> {
   const tokenHash = hashInviteToken(token)
@@ -28,11 +30,11 @@ export async function resolveInvitationByToken(token: string): Promise<ResolvedI
   if (error || !data) return null
 
   return {
-    guestId: data.guest_id,
-    guestName: data.guest_name,
-    eventId: data.event_id,
-    maxPartySize: data.max_party_size,
-    status: data.status as ResolvedInvitation['status'],
-    partySize: data.party_size,
+    invitationId: data.out_invitation_id,
+    guestId: data.out_guest_id,
+    guestName: data.out_guest_name,
+    eventId: data.out_event_id,
+    occasionId: data.out_occasion_id,
+    partyMembers: data.out_party_members,
   }
 }

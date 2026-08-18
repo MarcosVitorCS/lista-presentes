@@ -20,6 +20,15 @@ export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled'
 export type EventAdminRole = 'owner' | 'editor'
 export type RsvpStatus = 'pending' | 'confirmed' | 'declined'
 
+// Shape do jsonb_agg devolvido por resolve_invitation/submit_rsvp — reflete
+// exatamente o jsonb_build_object montado nas duas RPCs (migration 00007).
+export type PartyMemberJson = {
+  id: string
+  name: string
+  status: RsvpStatus
+  is_primary: boolean
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -40,7 +49,6 @@ export type Database = {
           facebook_url: string | null
           youtube_url: string | null
           whatsapp_url: string | null
-          allow_rsvp: boolean
           is_active: boolean
           created_at: string
           updated_at: string
@@ -61,7 +69,6 @@ export type Database = {
           facebook_url?: string | null
           youtube_url?: string | null
           whatsapp_url?: string | null
-          allow_rsvp?: boolean
           is_active?: boolean
           created_at?: string
           updated_at?: string
@@ -83,6 +90,9 @@ export type Database = {
           google_maps_url: string | null
           description: string | null
           image_url: string | null
+          // Substitui events.allow_rsvp (migration 00007): RSVP é habilitado
+          // por ocasião, não globalmente pro evento.
+          allow_rsvp: boolean
           is_active: boolean
           display_order: number
           created_at: string
@@ -101,6 +111,7 @@ export type Database = {
           google_maps_url?: string | null
           description?: string | null
           image_url?: string | null
+          allow_rsvp?: boolean
           is_active?: boolean
           display_order?: number
           created_at?: string
@@ -200,9 +211,6 @@ export type Database = {
           name: string
           contact: string
           contact_type: ContactType
-          // NULL = nunca foi convidado de RSVP (ex.: só se identificou pra
-          // reservar presente). Preenchido só via create_invitation.
-          max_party_size: number | null
           created_at: string
         }
         // Escrita real só acontece via RPC (identify_guest ou
@@ -214,7 +222,6 @@ export type Database = {
           name: string
           contact: string
           contact_type: ContactType
-          max_party_size?: number | null
           created_at?: string
         }
         Update: Partial<Database['public']['Tables']['guests']['Insert']>
@@ -226,6 +233,10 @@ export type Database = {
         Row: {
           id: string
           guest_id: string
+          // Convite pertence a UMA ocasião (migration 00007) — a mesma
+          // pessoa pode ter convites diferentes em ocasiões diferentes do
+          // mesmo evento, com composições de acompanhantes diferentes.
+          occasion_id: string
           event_id: string
           token_hash: string
           created_at: string
@@ -235,6 +246,7 @@ export type Database = {
         Insert: {
           id?: string
           guest_id: string
+          occasion_id: string
           event_id: string
           token_hash: string
           created_at?: string
@@ -243,38 +255,40 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['invitations']['Insert']>
         Relationships: [
           { foreignKeyName: 'invitations_guest_id_fkey'; columns: ['guest_id']; referencedRelation: 'guests'; referencedColumns: ['id'] },
+          { foreignKeyName: 'invitations_occasion_id_fkey'; columns: ['occasion_id']; referencedRelation: 'event_occasions'; referencedColumns: ['id'] },
           { foreignKeyName: 'invitations_event_id_fkey'; columns: ['event_id']; referencedRelation: 'events'; referencedColumns: ['id'] },
         ]
       }
-      rsvp_responses: {
+      // Substitui rsvp_responses (migration 00007): uma linha por pessoa
+      // autorizada, não mais um único status+contagem agregados por convite.
+      rsvp_party_members: {
         Row: {
           id: string
-          guest_id: string
+          invitation_id: string
           event_id: string
+          name: string
+          is_primary: boolean
           status: RsvpStatus
-          party_size: number | null
-          notes: string | null
-          responded_at: string | null
           created_at: string
           updated_at: string
         }
-        // Escrita real só via RPC (create_invitation cria a linha 'pending';
-        // submit_rsvp é quem atualiza status/party_size/notes).
+        // Escrita real só via RPC (create_invitation cria o responsável +
+        // extras; add_party_member/remove_party_member/rename_party_member
+        // pro admin editar depois; submit_rsvp é quem muda status).
         Insert: {
           id?: string
-          guest_id: string
+          invitation_id: string
           event_id: string
+          name: string
+          is_primary?: boolean
           status?: RsvpStatus
-          party_size?: number | null
-          notes?: string | null
-          responded_at?: string | null
           created_at?: string
           updated_at?: string
         }
-        Update: Partial<Database['public']['Tables']['rsvp_responses']['Insert']>
+        Update: Partial<Database['public']['Tables']['rsvp_party_members']['Insert']>
         Relationships: [
-          { foreignKeyName: 'rsvp_responses_guest_id_fkey'; columns: ['guest_id']; referencedRelation: 'guests'; referencedColumns: ['id'] },
-          { foreignKeyName: 'rsvp_responses_event_id_fkey'; columns: ['event_id']; referencedRelation: 'events'; referencedColumns: ['id'] },
+          { foreignKeyName: 'rsvp_party_members_invitation_id_fkey'; columns: ['invitation_id']; referencedRelation: 'invitations'; referencedColumns: ['id'] },
+          { foreignKeyName: 'rsvp_party_members_event_id_fkey'; columns: ['event_id']; referencedRelation: 'events'; referencedColumns: ['id'] },
         ]
       }
       reservations: {
@@ -360,10 +374,11 @@ export type Database = {
       }
       create_invitation: {
         Args: {
+          p_occasion_id: string
           p_name: string
           p_contact: string
           p_contact_type: ContactType
-          p_max_party_size: number
+          p_extra_member_names: string[] | null
           p_token_hash: string
         }
         // Função é returns table(...) (set-returning) no Postgres — o wire
@@ -371,36 +386,43 @@ export type Database = {
         // propósito pra .maybeSingle() (chamado no client) inferir o unwrap
         // corretamente (ver PostgrestTransformBuilder.maybeSingle<T>()).
         // out_/prefixo: nomes de coluna de saída não podem colidir com
-        // guest_id/invitation_id usados dentro do corpo da função (ver
+        // colunas de mesmo nome referenciadas dentro do corpo (ver
         // comentário na migration 00006 — "column reference is ambiguous").
         Returns: { out_guest_id: string; out_invitation_id: string }[]
       }
+      add_party_member: {
+        Args: { p_invitation_id: string; p_name: string }
+        Returns: Database['public']['Tables']['rsvp_party_members']['Row']
+      }
+      remove_party_member: {
+        Args: { p_party_member_id: string }
+        Returns: undefined
+      }
+      rename_party_member: {
+        Args: { p_party_member_id: string; p_name: string }
+        Returns: Database['public']['Tables']['rsvp_party_members']['Row']
+      }
       regenerate_invitation: {
-        Args: { p_guest_id: string; p_token_hash: string }
+        Args: { p_invitation_id: string; p_token_hash: string }
         Returns: Database['public']['Tables']['invitations']['Row']
       }
       resolve_invitation: {
         Args: { p_token_hash: string }
         // Idem create_invitation: returns table(...), wire format é array,
-        // sempre chamada com .maybeSingle() no client.
+        // sempre chamada com .maybeSingle() no client. out_party_members é
+        // o jsonb_agg das pessoas autorizadas — ver PartyMemberJson abaixo.
         Returns: {
-          guest_id: string
-          guest_name: string
-          event_id: string
-          max_party_size: number
-          status: RsvpStatus
-          party_size: number | null
-          notes: string | null
+          out_invitation_id: string
+          out_guest_id: string
+          out_guest_name: string
+          out_event_id: string
+          out_occasion_id: string
+          out_party_members: PartyMemberJson[]
         }[]
       }
       submit_rsvp: {
-        Args: {
-          p_token_hash: string
-          p_status: 'confirmed' | 'declined'
-          p_party_size: number | null
-          p_notes: string | null
-        }
-        Returns: Database['public']['Tables']['rsvp_responses']['Row']
+        Args: { p_token_hash: string; p_confirmed_member_ids: string[] }
+        Returns: { out_invitation_id: string; out_party_members: PartyMemberJson[] }[]
       }
     }
     Enums: Record<string, never>

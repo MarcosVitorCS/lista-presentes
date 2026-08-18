@@ -1,4 +1,4 @@
-import { Heart, MapPin } from 'lucide-react'
+import { Heart, MapPin, CheckCircle2 } from 'lucide-react'
 import { resolveMapsUrl } from '@/lib/maps'
 import { buttonVariants } from '@/components/ui/Button'
 import type { Database } from '@/types/database'
@@ -69,6 +69,13 @@ export function OccasionCard({ occasion }: { occasion: Occasion }) {
         >
           Como chegar
         </a>
+      )}
+
+      {occasion.allow_rsvp && (
+        <p className="flex items-center gap-1.5 text-xs text-ink-soft">
+          <CheckCircle2 size={14} strokeWidth={1.8} className="text-success" aria-hidden="true" />
+          Confirmação de presença disponível — use o link enviado a você.
+        </p>
       )}
     </div>
   )

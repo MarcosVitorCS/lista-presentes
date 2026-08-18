@@ -96,6 +96,7 @@ export async function updateOccasion(
     description: formData.get('description'),
     displayOrder: formData.get('displayOrder') || 0,
     isActive: formData.get('isActive'),
+    allowRsvp: formData.get('allowRsvp'),
   })
 
   if (!parsed.success) {
@@ -116,6 +117,7 @@ export async function updateOccasion(
     description: parsed.data.description ?? null,
     display_order: parsed.data.displayOrder,
     is_active: parsed.data.isActive,
+    allow_rsvp: parsed.data.allowRsvp,
   }
 
   const imageFile = formData.get('imageFile')

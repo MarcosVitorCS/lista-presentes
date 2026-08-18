@@ -41,6 +41,11 @@ export const createOccasionSchema = z.object({
 export const updateOccasionSchema = createOccasionSchema.omit({ eventId: true }).extend({
   occasionId: z.uuid(),
   isActive: z.coerce.boolean(),
+  // Checkbox: FormData manda 'on' quando marcado, nada quando desmarcado —
+  // z.coerce.boolean() trata string não-vazia como true, null/undefined
+  // como false. RSVP só pode ser ligado depois que a ocasião já existe
+  // (createOccasionSchema não tem esse campo — toda ocasião nasce sem RSVP).
+  allowRsvp: z.coerce.boolean(),
 })
 
 export type CreateOccasionInput = z.infer<typeof createOccasionSchema>

@@ -25,30 +25,33 @@ function formatTime(value: string | null) {
  * credencial é o token na URL. Nenhuma leitura/escrita deste arquivo toca
  * guests/reservations diretamente — tudo passa por resolveInvitationByToken
  * (RPC resolve_invitation) e pela action submitRsvp (RPC submit_rsvp).
+ *
+ * O convite pertence a UMA ocasião específica (invitation.occasion_id) —
+ * as informações mostradas aqui (data/hora/local) são sempre dessa
+ * ocasião, nunca "a primeira ocasião ativa do evento" como na versão
+ * anterior do RSVP.
  */
 export default async function ConfirmarPage(props: PageProps<'/confirmar/[token]'>) {
   const { token } = await props.params
   const invitation = await resolveInvitationByToken(token)
 
-  // Erro genérico independente do motivo (token malformado, revogado ou
-  // nunca existiu) — não revela nada sobre convites de outras pessoas.
+  // Erro genérico independente do motivo (token malformado, revogado,
+  // nunca existiu, ou RSVP foi desativado para a ocasião depois do convite
+  // criado) — não revela nada sobre convites de outras pessoas.
   if (!invitation) notFound()
 
   const supabase = await createClient()
-  const [{ data: event }, { data: occasions }] = await Promise.all([
+  const [{ data: event }, { data: occasion }] = await Promise.all([
     supabase.from('events').select('name, hero_label').eq('id', invitation.eventId).maybeSingle(),
     supabase
       .from('event_occasions')
       .select('name, occasion_date, occasion_time, location_name')
-      .eq('event_id', invitation.eventId)
-      .eq('is_active', true)
-      .order('display_order')
-      .limit(1),
+      .eq('id', invitation.occasionId)
+      .maybeSingle(),
   ])
 
   if (!event) notFound()
 
-  const occasion = occasions?.[0] ?? null
   const date = formatDate(occasion?.occasion_date ?? null)
   const time = formatTime(occasion?.occasion_time ?? null)
   const firstName = invitation.guestName.trim().split(' ')[0]
@@ -58,9 +61,9 @@ export default async function ConfirmarPage(props: PageProps<'/confirmar/[token]
       <PublicHeader />
       <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-8 px-5 py-14 sm:px-8">
         <div className="flex flex-col gap-2 text-center">
-          <Eyebrow>{event.hero_label}</Eyebrow>
+          <Eyebrow>{occasion?.name ?? event.hero_label}</Eyebrow>
           <h1 className="font-display text-3xl text-ink">Olá, {firstName}! 👋</h1>
-          <p className="text-ink-soft">Você está convidado para participar do nosso evento.</p>
+          <p className="text-ink-soft">Será uma alegria ter você conosco.</p>
         </div>
 
         <div className="flex flex-col gap-1 rounded-[var(--radius)] border border-canvas-line bg-canvas-alt p-5 text-center">
@@ -78,18 +81,9 @@ export default async function ConfirmarPage(props: PageProps<'/confirmar/[token]
               {occasion.location_name}
             </p>
           )}
-          <p className="mt-3 border-t border-canvas-line pt-3 text-xs text-ink-soft">
-            Convite válido para até {invitation.maxPartySize}{' '}
-            {invitation.maxPartySize === 1 ? 'pessoa' : 'pessoas'}.
-          </p>
         </div>
 
-        <RsvpForm
-          token={token}
-          maxPartySize={invitation.maxPartySize}
-          initialStatus={invitation.status}
-          initialPartySize={invitation.partySize}
-        />
+        <RsvpForm token={token} partyMembers={invitation.partyMembers} />
       </main>
     </>
   )

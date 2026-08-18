@@ -29,7 +29,7 @@ export default async function HomePage() {
   const { data: event } = await supabase
     .from('events')
     .select(
-      'id, name, event_date, description, image_url, hero_label, instagram_url, facebook_url, youtube_url, whatsapp_url, allow_rsvp'
+      'id, name, event_date, description, image_url, hero_label, instagram_url, facebook_url, youtube_url, whatsapp_url'
     )
     .eq('slug', DEFAULT_EVENT_SLUG)
     .maybeSingle()
@@ -126,8 +126,8 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      {/* ---------- RSVP (só se habilitado nas configurações) ---------- */}
-      {event.allow_rsvp && (
+      {/* ---------- RSVP (só se ALGUMA ocasião tiver ativado) ---------- */}
+      {occasions?.some((o) => o.allow_rsvp) && (
         <div className="border-b border-canvas-line bg-canvas-alt px-5 py-4 text-center text-sm text-ink-soft sm:px-8">
           Convidado? Você recebeu um link individual de confirmação de presença pelo WhatsApp ou
           e-mail — é só abrir esse link pra confirmar.

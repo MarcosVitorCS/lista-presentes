@@ -20,7 +20,7 @@ export default async function HomePage() {
 
   const { data: event } = await supabase
     .from('events')
-    .select('id, name, event_date, description')
+    .select('id, name, event_date, description, image_url')
     .eq('slug', DEFAULT_EVENT_SLUG)
     .maybeSingle()
 
@@ -67,6 +67,14 @@ export default async function HomePage() {
       {/* ---------- Hero ---------- */}
       <Section tone="ink-deep" className="py-20 sm:py-32">
         <div className="flex flex-col items-center gap-7 text-center">
+          {event.image_url && (
+            // eslint-disable-next-line @next/next/no-img-element -- vem do Supabase Storage, dimensão fixa via CSS
+            <img
+              src={event.image_url}
+              alt={event.name}
+              className="h-28 w-28 rounded-full border-2 border-accent object-cover sm:h-32 sm:w-32"
+            />
+          )}
           <Eyebrow className="text-accent">Casamento</Eyebrow>
           <Heading as="h1" size="xl" className="text-on-deep">
             {event.name.split(' & ').map((part, i, arr) => (

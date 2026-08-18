@@ -53,7 +53,7 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
             href={item.purchase_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 inline-block text-sm text-accent-strong underline underline-offset-2"
+            className="mt-1 inline-block text-sm text-accent-text underline underline-offset-2"
           >
             Saiba mais ↗
           </a>

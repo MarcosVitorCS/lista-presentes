@@ -53,6 +53,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-10">
+      {/* Visível só pra leitor de tela: mantém a hierarquia h1 (layout) > h2
+          sem duplicar visualmente o que "Visão geral" já comunica. */}
+      <h2 className="sr-only">Painel</h2>
       <div className="flex flex-col gap-4">
         <Eyebrow>Visão geral</Eyebrow>
         <Card className="flex flex-col gap-5">

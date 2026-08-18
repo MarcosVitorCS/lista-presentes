@@ -21,11 +21,19 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   return (
     <ToastProvider>
     <div className="flex min-h-screen flex-col bg-canvas">
+      <a
+        href="#admin-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[200] focus:rounded-[var(--radius)] focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink-deep"
+      >
+        Pular para o conteúdo
+      </a>
       <header className="bg-ink-deep text-on-deep">
         <Container className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.16em] text-accent">Administrando</p>
-            <p className="font-display text-lg italic">{event.name}</p>
+            {/* h1 real da área admin — cada página de conteúdo usa h2 pra baixo
+                disso, então a hierarquia de heading fica correta em toda rota. */}
+            <h1 className="font-display text-lg italic">{event.name}</h1>
           </div>
           <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
             {NAV_ITEMS.map((item) => (
@@ -41,7 +49,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           </nav>
         </Container>
       </header>
-      <main className="flex-1 py-10">
+      <main id="admin-main" className="flex-1 py-10">
         <Container>{children}</Container>
       </main>
     </div>

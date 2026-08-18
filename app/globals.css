@@ -16,15 +16,24 @@
   --color-canvas-line: #e2d6bc;
   --color-accent: #b8935a;
   --color-accent-strong: #9c7a45;
+  /* accent-strong (3.5:1 em pergaminho) é seguro pra ícones/bordas/dígitos
+     grandes (WCAG só exige 3:1 pra esses), mas FALHA contraste de texto
+     normal (precisa 4.5:1). accent-text é a versão escurecida pra texto de
+     verdade sobre fundo claro (Eyebrow, links) — ver auditoria de
+     contraste da Fase 8. */
+  --color-accent-text: #7a5a2e;
   --color-on-deep: #f3ecdd;
   --color-on-deep-soft: #c9bc9f;
 
-  /* Semânticas: separadas do acento de marca, nunca usar --color-accent pra status. */
-  --color-success: #4b7a5e;
+  /* Semânticas: separadas do acento de marca, nunca usar --color-accent pra
+     status. Valores calibrados pra >=4.5:1 tanto sobre --canvas quanto
+     sobre a própria variante "-soft" (badges e mensagens inline usam os
+     dois contextos). */
+  --color-success: #3d6650;
   --color-success-soft: #e3ede5;
-  --color-warning: #b3803a;
+  --color-warning: #8a6024;
   --color-warning-soft: #f3e8d4;
-  --color-danger: #ab5940;
+  --color-danger: #8f4530;
   --color-danger-soft: #f2e2dc;
 
   --radius-base: 0.25rem;
@@ -40,6 +49,7 @@
   --color-canvas-line: var(--color-canvas-line);
   --color-accent: var(--color-accent);
   --color-accent-strong: var(--color-accent-strong);
+  --color-accent-text: var(--color-accent-text);
   --color-on-deep: var(--color-on-deep);
   --color-on-deep-soft: var(--color-on-deep-soft);
   --color-success: var(--color-success);

@@ -24,10 +24,15 @@ export function Heading({ as: Tag = "h2", size = "lg", className, ...props }: He
 }
 
 export function Eyebrow({ className, ...props }: HTMLAttributes<HTMLSpanElement>) {
+  // accent-text (não accent-strong): em texto pequeno sobre pergaminho,
+  // accent-strong só bate 3.5:1 (falha os 4.5:1 exigidos pra texto normal) —
+  // ver auditoria de contraste da Fase 8. Passar className="text-accent"
+  // continua funcionando pra usos sobre fundo escuro (hero), onde o dourado
+  // original já passa (4.77:1).
   return (
     <span
       className={cx(
-        "text-xs font-semibold uppercase tracking-[0.2em] text-accent-strong",
+        "text-xs font-semibold uppercase tracking-[0.2em] text-accent-text",
         className
       )}
       {...props}

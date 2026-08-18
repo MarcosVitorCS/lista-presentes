@@ -27,6 +27,14 @@ export function EventSettingsForm({ event }: { event: EventRow }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
+        <Label htmlFor="heroLabel">Rótulo do evento</Label>
+        <Input id="heroLabel" name="heroLabel" defaultValue={event.hero_label} required />
+        <p className="text-xs text-ink-soft">
+          Aparece acima do nome na página principal. Ex.: &quot;Casamento&quot;, &quot;Aniversário de 15 anos&quot;.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="eventDate">Data principal</Label>
         <Input id="eventDate" name="eventDate" type="date" defaultValue={event.event_date ?? ''} />
       </div>
@@ -125,6 +133,57 @@ export function EventSettingsForm({ event }: { event: EventRow }) {
               </label>
             </div>
           )}
+        </div>
+      </Card>
+
+      <Card tone="canvas-alt" className="flex flex-col gap-4">
+        <div>
+          <p className="text-sm font-semibold text-ink">Redes sociais</p>
+          <p className="text-xs text-ink-soft">Opcional. Os links preenchidos aparecem no rodapé do site.</p>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="instagramUrl">Instagram</Label>
+          <Input
+            id="instagramUrl"
+            name="instagramUrl"
+            type="url"
+            placeholder="https://instagram.com/..."
+            defaultValue={event.instagram_url ?? ''}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="facebookUrl">Facebook</Label>
+          <Input
+            id="facebookUrl"
+            name="facebookUrl"
+            type="url"
+            placeholder="https://facebook.com/..."
+            defaultValue={event.facebook_url ?? ''}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="youtubeUrl">YouTube</Label>
+          <Input
+            id="youtubeUrl"
+            name="youtubeUrl"
+            type="url"
+            placeholder="https://youtube.com/..."
+            defaultValue={event.youtube_url ?? ''}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="whatsappUrl">WhatsApp</Label>
+          <Input
+            id="whatsappUrl"
+            name="whatsappUrl"
+            type="url"
+            placeholder="https://wa.me/55..."
+            defaultValue={event.whatsapp_url ?? ''}
+          />
         </div>
       </Card>
 

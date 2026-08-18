@@ -25,11 +25,16 @@ export async function updateEventSettings(
   const parsed = updateEventSettingsSchema.safeParse({
     eventId: formData.get('eventId'),
     name: formData.get('name'),
+    heroLabel: formData.get('heroLabel'),
     eventDate: formData.get('eventDate'),
     description: formData.get('description'),
     pixKey: formData.get('pixKey'),
     pixKeyType: formData.get('pixKeyType'),
     pixOwnerName: formData.get('pixOwnerName'),
+    instagramUrl: formData.get('instagramUrl'),
+    facebookUrl: formData.get('facebookUrl'),
+    youtubeUrl: formData.get('youtubeUrl'),
+    whatsappUrl: formData.get('whatsappUrl'),
   })
 
   if (!parsed.success) {
@@ -40,11 +45,16 @@ export async function updateEventSettings(
 
   const updates: EventUpdate = {
     name: parsed.data.name,
+    hero_label: parsed.data.heroLabel,
     event_date: parsed.data.eventDate ?? null,
     description: parsed.data.description ?? null,
     pix_key: parsed.data.pixKey ?? null,
     pix_key_type: parsed.data.pixKeyType ?? null,
     pix_owner_name: parsed.data.pixOwnerName ?? null,
+    instagram_url: parsed.data.instagramUrl ?? null,
+    facebook_url: parsed.data.facebookUrl ?? null,
+    youtube_url: parsed.data.youtubeUrl ?? null,
+    whatsapp_url: parsed.data.whatsappUrl ?? null,
   }
 
   const qrFile = formData.get('pixQrCodeFile')

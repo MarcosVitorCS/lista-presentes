@@ -10,4 +10,5 @@ export * from "./Dialog";
 export * from "./Toast";
 export * from "./IconButton";
 export * from "./Skeleton";
+export * from "./SocialIcons";
 export * from "./utils";

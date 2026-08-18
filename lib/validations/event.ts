@@ -9,17 +9,25 @@ const optionalPixKeyType = z.preprocess(
   emptyToUndefined,
   z.enum(['cpf', 'cnpj', 'email', 'phone', 'random']).optional()
 )
+const optionalUrl = z.preprocess(emptyToUndefined, z.url('Link inválido.').optional())
 
 // pixQrCodeUrl e imagem principal saem daqui: vêm de upload
 // (lib/supabase/storage.ts), tratados separadamente na action.
 export const updateEventSettingsSchema = z.object({
   eventId: z.uuid(),
   name: z.string().trim().min(2, 'Nome muito curto.').max(160),
+  // Rótulo mostrado acima do nome no hero — hoje "Casamento", mas a
+  // plataforma pode futuramente servir outros tipos de evento.
+  heroLabel: z.string().trim().min(2, 'Muito curto.').max(60),
   eventDate: optionalDate,
   description: optionalLongText,
   pixKey: optionalText,
   pixKeyType: optionalPixKeyType,
   pixOwnerName: optionalText,
+  instagramUrl: optionalUrl,
+  facebookUrl: optionalUrl,
+  youtubeUrl: optionalUrl,
+  whatsappUrl: optionalUrl,
 })
 
 export type UpdateEventSettingsInput = z.infer<typeof updateEventSettingsSchema>

@@ -7,6 +7,14 @@ import { buttonVariants } from '@/components/ui/Button'
 import { Countdown } from '@/components/public/Countdown'
 import { OccasionCard } from '@/components/public/OccasionCard'
 import { Reveal } from '@/components/ui/Reveal'
+import { InstagramIcon, FacebookIcon, YoutubeIcon, WhatsappIcon } from '@/components/ui/SocialIcons'
+
+const SOCIAL_LINKS = [
+  { key: 'instagram_url', label: 'Instagram', Icon: InstagramIcon },
+  { key: 'facebook_url', label: 'Facebook', Icon: FacebookIcon },
+  { key: 'youtube_url', label: 'YouTube', Icon: YoutubeIcon },
+  { key: 'whatsapp_url', label: 'WhatsApp', Icon: WhatsappIcon },
+] as const
 
 const STEPS = [
   { n: 'I', text: 'Escolha um presente' },
@@ -20,7 +28,9 @@ export default async function HomePage() {
 
   const { data: event } = await supabase
     .from('events')
-    .select('id, name, event_date, description, image_url')
+    .select(
+      'id, name, event_date, description, image_url, hero_label, instagram_url, facebook_url, youtube_url, whatsapp_url'
+    )
     .eq('slug', DEFAULT_EVENT_SLUG)
     .maybeSingle()
 
@@ -75,7 +85,7 @@ export default async function HomePage() {
               className="h-28 w-28 rounded-full border-2 border-accent object-cover sm:h-32 sm:w-32"
             />
           )}
-          <Eyebrow className="text-accent">Casamento</Eyebrow>
+          <Eyebrow className="text-accent">{event.hero_label}</Eyebrow>
           <Heading as="h1" size="xl" className="text-on-deep">
             {event.name.split(' & ').map((part, i, arr) => (
               <span key={i}>
@@ -204,6 +214,27 @@ export default async function HomePage() {
           <p className="mt-1.5 text-xs tracking-[0.14em]">{formattedDate.join(' · ')}</p>
         )}
         <p className="mx-auto mt-5 max-w-[30ch] text-sm">Obrigado por fazer parte desse momento.</p>
+
+        {SOCIAL_LINKS.some(({ key }) => event[key]) && (
+          <div className="mt-6 flex items-center justify-center gap-4">
+            {SOCIAL_LINKS.map(({ key, label, Icon }) => {
+              const url = event[key]
+              if (!url) return null
+              return (
+                <a
+                  key={key}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-on-deep-soft/30 text-on-deep-soft transition-colors hover:border-accent hover:text-accent"
+                >
+                  <Icon size={16} strokeWidth={1.6} />
+                </a>
+              )
+            })}
+          </div>
+        )}
       </footer>
     </>
   )

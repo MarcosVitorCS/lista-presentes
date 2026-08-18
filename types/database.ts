@@ -34,6 +34,11 @@ export type Database = {
           pix_owner_name: string | null
           pix_qr_code_url: string | null
           image_url: string | null
+          hero_label: string
+          instagram_url: string | null
+          facebook_url: string | null
+          youtube_url: string | null
+          whatsapp_url: string | null
           is_active: boolean
           created_at: string
           updated_at: string
@@ -49,6 +54,11 @@ export type Database = {
           pix_owner_name?: string | null
           pix_qr_code_url?: string | null
           image_url?: string | null
+          hero_label?: string
+          instagram_url?: string | null
+          facebook_url?: string | null
+          youtube_url?: string | null
+          whatsapp_url?: string | null
           is_active?: boolean
           created_at?: string
           updated_at?: string

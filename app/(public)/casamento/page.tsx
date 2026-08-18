@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getGuestSession } from '@/lib/dal/guest-session'
 import { DEFAULT_EVENT_SLUG } from '@/lib/constants'
 import { QuotaItemCard } from '@/components/public/QuotaItemCard'
+import { GiftCatalog } from '@/components/public/GiftCatalog'
 import { PublicHeader } from '@/components/public/PublicHeader'
 import { EmptyState } from '@/components/public/EmptyState'
 import { Eyebrow } from '@/components/ui/Heading'
@@ -54,15 +55,11 @@ export default async function CasamentoPage() {
         {!items?.length ? (
           <EmptyState message="A lista está sendo preparada com carinho. Volte em breve. ❤" />
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => (
-              <QuotaItemCard
-                key={item.id}
-                item={item}
-                pix={{ key: event.pix_key, ownerName: event.pix_owner_name, qrCodeUrl: event.pix_qr_code_url }}
-              />
-            ))}
-          </div>
+          <GiftCatalog
+            items={items}
+            pix={{ key: event.pix_key, ownerName: event.pix_owner_name, qrCodeUrl: event.pix_qr_code_url }}
+            ItemCard={QuotaItemCard}
+          />
         )}
       </main>
     </>

@@ -101,6 +101,17 @@ body::before {
   background-image: radial-gradient(120% 90% at 82% -10%, rgba(184, 147, 90, 0.16), transparent 60%);
 }
 
+/* Chips de filtro de preço no catálogo: rolagem horizontal no mobile sem
+   barra de scroll visível — a affordance é a rolagem em si, a barra só
+   adicionaria ruído visual a um controle que já é de baixa hierarquia. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes countdown-flip {
   from {
     opacity: 0;

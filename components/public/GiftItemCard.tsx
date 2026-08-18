@@ -40,24 +40,26 @@ export function GiftItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-[var(--radius)] border border-canvas-line bg-canvas p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-strong/50 hover:shadow-[0_8px_24px_-12px_rgba(30,50,41,0.25)]">
+    <div className="flex flex-col gap-2.5 rounded-[var(--radius)] border border-canvas-line bg-canvas p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-strong/50 hover:shadow-[0_8px_24px_-12px_rgba(30,50,41,0.25)] sm:gap-3 sm:p-4">
       {item.image_url && (
         // eslint-disable-next-line @next/next/no-img-element -- imagem vinda do Supabase Storage
-        <img src={item.image_url} alt={item.name} className="h-40 w-full rounded-[var(--radius)] object-cover" />
+        <img src={item.image_url} alt={item.name} className="h-24 w-full rounded-[var(--radius)] object-cover sm:h-40" />
       )}
 
       <div>
-        <h2 className="font-sans font-semibold text-ink">{item.name}</h2>
-        {item.description && <p className="text-sm text-ink-soft">{item.description}</p>}
+        <h2 className="font-sans text-sm font-semibold text-ink sm:text-base">{item.name}</h2>
         {item.unit_price != null && (
-          <p className="mt-1 text-sm text-ink-soft">{formatPrice(item.unit_price)}</p>
+          <p className="mt-0.5 text-sm font-semibold text-accent-text">{formatPrice(item.unit_price)}</p>
+        )}
+        {item.description && (
+          <p className="mt-0.5 line-clamp-2 text-xs text-ink-soft sm:text-sm">{item.description}</p>
         )}
         {item.purchase_url && (
           <a
             href={item.purchase_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 inline-block text-sm text-accent-text underline underline-offset-2"
+            className="mt-0.5 inline-block text-xs text-accent-text underline underline-offset-2 sm:text-sm"
           >
             Ver sugestão de loja ↗
           </a>
@@ -65,11 +67,11 @@ export function GiftItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo
       </div>
 
       {physicalState?.success ? (
-        <p className="rounded-[var(--radius)] bg-success-soft px-3 py-2 text-sm text-success">
+        <p className="rounded-[var(--radius)] bg-success-soft px-3 py-2 text-xs text-success sm:text-sm">
           Reservado! Obrigado — é só levar no dia do evento.
         </p>
       ) : pixState?.success ? (
-        <div className="flex flex-col gap-2 rounded-[var(--radius)] bg-success-soft px-3 py-3 text-sm text-success">
+        <div className="flex flex-col gap-2 rounded-[var(--radius)] bg-success-soft px-3 py-3 text-xs text-success sm:text-sm">
           <p>PIX registrado! Finalize o pagamento com a chave abaixo:</p>
           {pix.key && (
             <div className="flex items-center justify-between gap-2 rounded border border-success/30 bg-canvas px-2 py-1.5">
@@ -86,36 +88,45 @@ export function GiftItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo
           )}
         </div>
       ) : unavailable ? (
-        <p className="rounded-[var(--radius)] bg-canvas-alt px-3 py-2 text-sm text-ink-soft">
+        <p className="rounded-[var(--radius)] bg-canvas-alt px-3 py-2 text-xs text-ink-soft sm:text-sm">
           Já reservado por outro convidado
         </p>
       ) : (
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-col gap-1.5 sm:gap-2">
+          {/* Sem size="sm" de propósito: px-6 py-3 do tamanho padrão do
+              Button garante uma área de toque perto de 44px — um CTA
+              principal compacto demais é o tipo de "otimização" que piora
+              a experiência mobile em vez de melhorar. */}
           <Button
             type="button"
             variant="line"
-            className="flex-1"
+            className="w-full"
             disabled={busy}
             onClick={() => setConfirmMethod('physical')}
           >
-            Vou comprar e levar
+            {/* Rótulo mais curto no mobile: em card estreito, o texto
+                completo quebra em 2 linhas e deixa o card mais alto do que
+                precisa — o objetivo explícito era o contrário. */}
+            <span className="sm:hidden">Vou levar</span>
+            <span className="hidden sm:inline">Vou comprar e levar</span>
           </Button>
           {item.unit_price != null && (
             <Button
               type="button"
               variant="solid"
-              className="flex-1"
+              className="w-full"
               disabled={busy}
               onClick={() => setConfirmMethod('pix')}
             >
-              Presentear com PIX
+              <span className="sm:hidden">Presentear</span>
+              <span className="hidden sm:inline">Presentear com PIX</span>
             </Button>
           )}
         </div>
       )}
 
       {(physicalState?.error || pixState?.error) && (
-        <p className="text-sm text-danger">{physicalState?.error ?? pixState?.error}</p>
+        <p className="text-xs text-danger sm:text-sm">{physicalState?.error ?? pixState?.error}</p>
       )}
 
       <Dialog open={dialogOpen} onClose={() => setConfirmMethod(null)} labelledBy="confirm-title">

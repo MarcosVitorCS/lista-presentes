@@ -5,6 +5,8 @@ export * from "./Input";
 export * from "./Container";
 export * from "./Heading";
 export * from "./Section";
+export * from "./Progress";
+export * from "./Dialog";
 export * from "./IconButton";
 export * from "./Skeleton";
 export * from "./utils";

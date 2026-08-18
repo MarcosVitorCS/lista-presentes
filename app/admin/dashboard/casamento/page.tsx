@@ -2,6 +2,7 @@ import { getAdminEvent } from '@/lib/dal/admin-session'
 import { createClient } from '@/lib/supabase/server'
 import { GiftItemsManager } from '@/components/admin/GiftItemsManager'
 import { GiftListSetup } from '@/components/admin/GiftListSetup'
+import { Heading } from '@/components/ui/Heading'
 
 export default async function AdminCasamentoPage() {
   const event = await getAdminEvent()
@@ -17,7 +18,7 @@ export default async function AdminCasamentoPage() {
   if (!list) {
     return (
       <div className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold text-zinc-900">Casamento</h2>
+        <Heading as="h2" size="md">Casamento</Heading>
         <GiftListSetup eventId={event.id} slug="casamento" type="quota" name="Casamento" />
       </div>
     )
@@ -27,8 +28,8 @@ export default async function AdminCasamentoPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-semibold text-zinc-900">Casamento</h2>
-      <p className="text-sm text-zinc-500">
+      <Heading as="h2" size="md">Casamento</Heading>
+      <p className="text-sm text-ink-soft">
         Defina o preço por cota (obrigatório para reserva via PIX) e a quantidade total de cotas.
       </p>
       <GiftItemsManager listId={list.id} eventId={event.id} items={items ?? []} />

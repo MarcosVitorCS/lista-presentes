@@ -4,6 +4,10 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { verifyAdminSession } from '@/lib/dal/admin-session'
 import { updateEventSettingsSchema } from '@/lib/validations/event'
+import { uploadEventImage, InvalidImageError } from '@/lib/supabase/storage'
+import type { Database } from '@/types/database'
+
+type EventUpdate = Database['public']['Tables']['events']['Update']
 
 export type EventActionState = { error?: string; success?: boolean } | undefined
 
@@ -25,7 +29,6 @@ export async function updateEventSettings(
     pixKey: formData.get('pixKey'),
     pixKeyType: formData.get('pixKeyType'),
     pixOwnerName: formData.get('pixOwnerName'),
-    pixQrCodeUrl: formData.get('pixQrCodeUrl'),
   })
 
   if (!parsed.success) {
@@ -33,17 +36,31 @@ export async function updateEventSettings(
   }
 
   const supabase = await createClient()
-  const { error } = await supabase
-    .from('events')
-    .update({
-      name: parsed.data.name,
-      event_date: parsed.data.eventDate ?? null,
-      pix_key: parsed.data.pixKey ?? null,
-      pix_key_type: parsed.data.pixKeyType ?? null,
-      pix_owner_name: parsed.data.pixOwnerName ?? null,
-      pix_qr_code_url: parsed.data.pixQrCodeUrl ?? null,
-    })
-    .eq('id', parsed.data.eventId)
+
+  const updates: EventUpdate = {
+    name: parsed.data.name,
+    event_date: parsed.data.eventDate ?? null,
+    pix_key: parsed.data.pixKey ?? null,
+    pix_key_type: parsed.data.pixKeyType ?? null,
+    pix_owner_name: parsed.data.pixOwnerName ?? null,
+  }
+
+  const qrFile = formData.get('pixQrCodeFile')
+  const removeQr = formData.get('removePixQrCode') === 'on'
+
+  if (qrFile instanceof File && qrFile.size > 0) {
+    try {
+      updates.pix_qr_code_url = await uploadEventImage(supabase, parsed.data.eventId, qrFile)
+    } catch (err) {
+      return { error: err instanceof InvalidImageError ? err.message : 'Não foi possível enviar o QR Code.' }
+    }
+  } else if (removeQr) {
+    updates.pix_qr_code_url = null
+  }
+  // Sem arquivo novo nem "remover" marcado: pix_qr_code_url não entra no
+  // update, o QR Code atual permanece intacto.
+
+  const { error } = await supabase.from('events').update(updates).eq('id', parsed.data.eventId)
 
   if (error) {
     return { error: 'Não foi possível salvar as configurações.' }

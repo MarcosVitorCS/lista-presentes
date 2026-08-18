@@ -28,7 +28,7 @@ export default async function AdminChaDeCozinhaPage() {
   return (
     <div className="flex flex-col gap-6">
       <h2 className="text-xl font-semibold text-zinc-900">Chá de Cozinha</h2>
-      <GiftItemsManager listId={list.id} items={items ?? []} />
+      <GiftItemsManager listId={list.id} eventId={event.id} items={items ?? []} />
     </div>
   )
 }

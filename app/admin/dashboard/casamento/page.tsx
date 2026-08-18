@@ -31,7 +31,7 @@ export default async function AdminCasamentoPage() {
       <p className="text-sm text-zinc-500">
         Defina o preço por cota (obrigatório para reserva via PIX) e a quantidade total de cotas.
       </p>
-      <GiftItemsManager listId={list.id} items={items ?? []} />
+      <GiftItemsManager listId={list.id} eventId={event.id} items={items ?? []} />
     </div>
   )
 }

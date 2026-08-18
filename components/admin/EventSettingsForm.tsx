@@ -80,25 +80,30 @@ export function EventSettingsForm({ event }: { event: EventRow }) {
           />
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="pixQrCodeUrl" className="text-sm text-zinc-600">
-            URL do QR Code (opcional)
+        <div className="flex flex-col gap-2">
+          <label htmlFor="pixQrCodeFile" className="text-sm text-zinc-600">
+            {event.pix_qr_code_url ? 'Trocar QR Code' : 'QR Code (opcional, até 5MB)'}
           </label>
           <input
-            id="pixQrCodeUrl"
-            name="pixQrCodeUrl"
-            type="url"
-            defaultValue={event.pix_qr_code_url ?? ''}
-            placeholder="https://..."
-            className={inputClass}
+            id="pixQrCodeFile"
+            name="pixQrCodeFile"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-900 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
           />
           {event.pix_qr_code_url && (
-            // eslint-disable-next-line @next/next/no-img-element -- imagem vinda de URL externa configurável pelo admin
-            <img
-              src={event.pix_qr_code_url}
-              alt="QR Code atual"
-              className="mt-2 h-32 w-32 rounded-md border border-zinc-200 object-contain"
-            />
+            <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element -- vem do Supabase Storage, não é um asset local otimizável */}
+              <img
+                src={event.pix_qr_code_url}
+                alt="QR Code atual"
+                className="h-32 w-32 rounded-md border border-zinc-200 object-contain"
+              />
+              <label className="flex items-center gap-2 text-sm text-zinc-600">
+                <input type="checkbox" name="removePixQrCode" />
+                Remover QR Code atual
+              </label>
+            </div>
           )}
         </div>
       </fieldset>

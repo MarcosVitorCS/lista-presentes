@@ -4,6 +4,10 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { verifyAdminSession } from '@/lib/dal/admin-session'
 import { createGiftItemSchema, updateGiftItemSchema } from '@/lib/validations/catalog'
+import { uploadEventImage, InvalidImageError } from '@/lib/supabase/storage'
+import type { Database } from '@/types/database'
+
+type GiftItemUpdate = Database['public']['Tables']['gift_items']['Update']
 
 export type CatalogActionState = { error?: string; success?: boolean } | undefined
 
@@ -52,9 +56,9 @@ export async function createGiftItem(
 
   const parsed = createGiftItemSchema.safeParse({
     listId: formData.get('listId'),
+    eventId: formData.get('eventId'),
     name: formData.get('name'),
     description: formData.get('description'),
-    imageUrl: formData.get('imageUrl'),
     unitPrice: formData.get('unitPrice'),
     quantityTotal: formData.get('quantityTotal'),
   })
@@ -64,11 +68,22 @@ export async function createGiftItem(
   }
 
   const supabase = await createClient()
+
+  let imageUrl: string | null = null
+  const imageFile = formData.get('imageFile')
+  if (imageFile instanceof File && imageFile.size > 0) {
+    try {
+      imageUrl = await uploadEventImage(supabase, parsed.data.eventId, imageFile)
+    } catch (err) {
+      return { error: err instanceof InvalidImageError ? err.message : 'Não foi possível enviar a imagem.' }
+    }
+  }
+
   const { error } = await supabase.from('gift_items').insert({
     list_id: parsed.data.listId,
     name: parsed.data.name,
     description: parsed.data.description ?? null,
-    image_url: parsed.data.imageUrl ?? null,
+    image_url: imageUrl,
     unit_price: parsed.data.unitPrice ?? null,
     quantity_total: parsed.data.quantityTotal,
   })
@@ -91,9 +106,9 @@ export async function updateGiftItem(
 
   const parsed = updateGiftItemSchema.safeParse({
     itemId: formData.get('itemId'),
+    eventId: formData.get('eventId'),
     name: formData.get('name'),
     description: formData.get('description'),
-    imageUrl: formData.get('imageUrl'),
     unitPrice: formData.get('unitPrice'),
     quantityTotal: formData.get('quantityTotal'),
     isActive: formData.get('isActive'),
@@ -104,17 +119,31 @@ export async function updateGiftItem(
   }
 
   const supabase = await createClient()
-  const { error } = await supabase
-    .from('gift_items')
-    .update({
-      name: parsed.data.name,
-      description: parsed.data.description ?? null,
-      image_url: parsed.data.imageUrl ?? null,
-      unit_price: parsed.data.unitPrice ?? null,
-      quantity_total: parsed.data.quantityTotal,
-      is_active: parsed.data.isActive,
-    })
-    .eq('id', parsed.data.itemId)
+
+  const updates: GiftItemUpdate = {
+    name: parsed.data.name,
+    description: parsed.data.description ?? null,
+    unit_price: parsed.data.unitPrice ?? null,
+    quantity_total: parsed.data.quantityTotal,
+    is_active: parsed.data.isActive,
+  }
+
+  const imageFile = formData.get('imageFile')
+  const removeImage = formData.get('removeImage') === 'on'
+
+  if (imageFile instanceof File && imageFile.size > 0) {
+    try {
+      updates.image_url = await uploadEventImage(supabase, parsed.data.eventId, imageFile)
+    } catch (err) {
+      return { error: err instanceof InvalidImageError ? err.message : 'Não foi possível enviar a imagem.' }
+    }
+  } else if (removeImage) {
+    updates.image_url = null
+  }
+  // Se nem arquivo novo nem "remover" foram marcados, image_url não entra no
+  // update — a imagem atual (se houver) permanece intacta.
+
+  const { error } = await supabase.from('gift_items').update(updates).eq('id', parsed.data.itemId)
 
   if (error) {
     // Provavelmente a CHECK quantity_reserved_le_total (tentou reduzir o

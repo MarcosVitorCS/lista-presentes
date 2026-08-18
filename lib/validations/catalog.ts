@@ -8,6 +8,7 @@ const optionalPositiveNumber = z.preprocess(
 )
 
 const optionalText = z.preprocess(emptyToUndefined, z.string().trim().max(500).optional())
+const optionalUrl = z.preprocess(emptyToUndefined, z.url('Link inválido.').optional())
 
 // imageUrl saiu daqui de propósito: a imagem agora vem de upload
 // (lib/supabase/storage.ts), tratado separadamente nas actions — não é mais
@@ -19,6 +20,7 @@ export const createGiftItemSchema = z.object({
   description: optionalText,
   unitPrice: optionalPositiveNumber,
   quantityTotal: z.coerce.number().int().positive('Quantidade precisa ser maior que zero.'),
+  purchaseUrl: optionalUrl,
 })
 
 export const updateGiftItemSchema = createGiftItemSchema

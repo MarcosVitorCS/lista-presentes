@@ -41,6 +41,16 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
         <p className="mt-1 text-sm text-zinc-500">
           {formatPrice(item.unit_price)} por cota · {item.quantity_available} disponíveis
         </p>
+        {item.purchase_url && (
+          <a
+            href={item.purchase_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 inline-block text-sm text-zinc-500 underline"
+          >
+            Saiba mais ↗
+          </a>
+        )}
       </div>
 
       {state?.success ? (

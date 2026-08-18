@@ -109,6 +109,7 @@ export type Database = {
           quantity_reserved: number
           quantity_available: number
           is_active: boolean
+          purchase_url: string | null
           created_at: string
           updated_at: string
         }
@@ -124,6 +125,7 @@ export type Database = {
           unit_price?: number | null
           quantity_total: number
           is_active?: boolean
+          purchase_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -207,6 +209,7 @@ export type Database = {
           unit_price: number | null
           quantity_available: number
           is_active: boolean
+          purchase_url: string | null
         }
         Relationships: []
       }

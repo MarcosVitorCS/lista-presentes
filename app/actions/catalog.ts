@@ -61,6 +61,7 @@ export async function createGiftItem(
     description: formData.get('description'),
     unitPrice: formData.get('unitPrice'),
     quantityTotal: formData.get('quantityTotal'),
+    purchaseUrl: formData.get('purchaseUrl'),
   })
 
   if (!parsed.success) {
@@ -86,6 +87,7 @@ export async function createGiftItem(
     image_url: imageUrl,
     unit_price: parsed.data.unitPrice ?? null,
     quantity_total: parsed.data.quantityTotal,
+    purchase_url: parsed.data.purchaseUrl ?? null,
   })
 
   if (error) {
@@ -112,6 +114,7 @@ export async function updateGiftItem(
     unitPrice: formData.get('unitPrice'),
     quantityTotal: formData.get('quantityTotal'),
     isActive: formData.get('isActive'),
+    purchaseUrl: formData.get('purchaseUrl'),
   })
 
   if (!parsed.success) {
@@ -126,6 +129,7 @@ export async function updateGiftItem(
     unit_price: parsed.data.unitPrice ?? null,
     quantity_total: parsed.data.quantityTotal,
     is_active: parsed.data.isActive,
+    purchase_url: parsed.data.purchaseUrl ?? null,
   }
 
   const imageFile = formData.get('imageFile')

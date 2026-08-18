@@ -67,6 +67,12 @@ function NewItemForm({ listId, eventId }: { listId: string; eventId: string }) {
         </div>
       </div>
       <textarea name="description" placeholder="Descrição (opcional)" rows={2} className={inputClass} />
+      <input
+        name="purchaseUrl"
+        type="url"
+        placeholder="Link sugerido de loja (opcional)"
+        className={inputClass}
+      />
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
       <button
         type="submit"
@@ -128,6 +134,13 @@ function ItemRow({ item, eventId }: { item: GiftItemRow; eventId: string }) {
         </div>
       </div>
       <textarea name="description" defaultValue={item.description ?? ''} rows={2} className={inputClass} />
+      <input
+        name="purchaseUrl"
+        type="url"
+        defaultValue={item.purchase_url ?? ''}
+        placeholder="Link sugerido de loja (opcional)"
+        className={inputClass}
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-4">
           <label className="flex items-center gap-2 text-sm text-zinc-600">

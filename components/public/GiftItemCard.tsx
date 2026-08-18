@@ -45,6 +45,16 @@ export function GiftItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo
         {item.unit_price != null && (
           <p className="mt-1 text-sm text-zinc-500">{formatPrice(item.unit_price)}</p>
         )}
+        {item.purchase_url && (
+          <a
+            href={item.purchase_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 inline-block text-sm text-zinc-500 underline"
+          >
+            Ver sugestão de loja ↗
+          </a>
+        )}
       </div>
 
       {physicalState?.success ? (

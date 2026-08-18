@@ -1,16 +1,21 @@
 import { Suspense } from 'react'
+import { PublicHeader } from '@/components/public/PublicHeader'
 import { IdentificacaoForm } from '@/components/public/IdentificacaoForm'
+import { Eyebrow } from '@/components/ui/Heading'
 
 export default function IdentificacaoPage() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-sm flex-col justify-center gap-6 px-6">
-      <div>
-        <p className="text-sm uppercase tracking-widest text-zinc-500">Antes de continuar</p>
-        <h1 className="text-2xl font-semibold text-zinc-900">Como podemos te chamar?</h1>
-      </div>
-      <Suspense fallback={null}>
-        <IdentificacaoForm />
-      </Suspense>
-    </main>
+    <>
+      <PublicHeader />
+      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-7 px-5 py-16 sm:px-8">
+        <div className="flex flex-col gap-1.5">
+          <Eyebrow>Antes de continuar</Eyebrow>
+          <h1 className="font-display text-3xl text-ink">Como podemos te chamar?</h1>
+        </div>
+        <Suspense fallback={null}>
+          <IdentificacaoForm />
+        </Suspense>
+      </main>
+    </>
   )
 }

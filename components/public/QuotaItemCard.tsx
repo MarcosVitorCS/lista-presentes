@@ -2,6 +2,9 @@
 
 import { useActionState, useState } from 'react'
 import { createReservation } from '@/app/actions/reservations'
+import { Dialog } from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import type { Database } from '@/types/database'
 
 type GiftItemPublic = Database['public']['Views']['gift_items_public']['Row']
@@ -20,11 +23,15 @@ function formatPrice(value: number | null) {
 export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo }) {
   const [state, action, pending] = useActionState(createReservation, undefined)
   const [quantity, setQuantity] = useState(1)
+  const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const soldOut = item.quantity_available <= 0
   const maxQuantity = Math.max(item.quantity_available, 1)
   const total = item.unit_price != null ? item.unit_price * quantity : null
+  // Mesma lógica de GiftItemCard: deriva do estado em vez de sincronizar via
+  // efeito, evitando um render em cascata só pra fechar o resumo.
+  const dialogOpen = open && !state?.success
 
   async function copyPixKey() {
     if (!pix.key) return
@@ -34,11 +41,11 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-4">
+    <div className="flex flex-col gap-3 rounded-[var(--radius)] border border-canvas-line bg-canvas p-4">
       <div>
-        <h2 className="font-medium text-zinc-900">{item.name}</h2>
-        {item.description && <p className="text-sm text-zinc-600">{item.description}</p>}
-        <p className="mt-1 text-sm text-zinc-500">
+        <h2 className="font-sans font-semibold text-ink">{item.name}</h2>
+        {item.description && <p className="text-sm text-ink-soft">{item.description}</p>}
+        <p className="mt-1 text-sm text-ink-soft">
           {formatPrice(item.unit_price)} por cota · {item.quantity_available} disponíveis
         </p>
         {item.purchase_url && (
@@ -46,7 +53,7 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
             href={item.purchase_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 inline-block text-sm text-zinc-500 underline"
+            className="mt-1 inline-block text-sm text-accent-strong underline underline-offset-2"
           >
             Saiba mais ↗
           </a>
@@ -54,57 +61,81 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
       </div>
 
       {state?.success ? (
-        <div className="flex flex-col gap-2 rounded-md bg-emerald-50 px-3 py-3 text-sm text-emerald-800">
+        <div className="flex flex-col gap-2 rounded-[var(--radius)] bg-success-soft px-3 py-3 text-sm text-success">
           <p>PIX registrado! Finalize o pagamento com a chave abaixo:</p>
           {pix.key && (
-            <div className="flex items-center justify-between gap-2 rounded border border-emerald-200 bg-white px-2 py-1.5">
+            <div className="flex items-center justify-between gap-2 rounded border border-success/30 bg-canvas px-2 py-1.5">
               <code className="truncate text-xs">{pix.key}</code>
               <button type="button" onClick={copyPixKey} className="shrink-0 text-xs underline">
                 {copied ? 'Copiado!' : 'Copiar'}
               </button>
             </div>
           )}
-          {pix.ownerName && <p className="text-xs text-emerald-700">Titular: {pix.ownerName}</p>}
+          {pix.ownerName && <p className="text-xs">Titular: {pix.ownerName}</p>}
           {pix.qrCodeUrl && (
-            // eslint-disable-next-line @next/next/no-img-element -- imagem vinda de URL externa configurável pelo admin
+            // eslint-disable-next-line @next/next/no-img-element -- imagem vinda do Supabase Storage
             <img src={pix.qrCodeUrl} alt="QR Code PIX" className="mx-auto h-40 w-40" />
           )}
         </div>
       ) : soldOut ? (
-        <p className="rounded-md bg-zinc-100 px-3 py-2 text-sm text-zinc-500">Cotas esgotadas</p>
+        <p className="rounded-[var(--radius)] bg-canvas-alt px-3 py-2 text-sm text-ink-soft">Cotas esgotadas</p>
       ) : (
-        <form action={action} className="flex flex-col gap-2">
-          <input type="hidden" name="itemId" value={item.id} />
-          <input type="hidden" name="fulfillmentMethod" value="pix" />
-          <div className="flex items-center gap-2">
-            <label htmlFor={`quantity-${item.id}`} className="text-sm text-zinc-600">
-              Quantas cotas?
-            </label>
-            <input
-              id={`quantity-${item.id}`}
-              name="quantity"
-              type="number"
-              min={1}
-              max={maxQuantity}
-              value={quantity}
-              onChange={(event) =>
-                setQuantity(Math.min(Math.max(1, Number(event.target.value) || 1), maxQuantity))
-              }
-              className="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900"
-            />
-          </div>
-          {total != null && <p className="text-sm text-zinc-500">Total: {formatPrice(total)}</p>}
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
-          >
-            {pending ? 'Registrando…' : 'Presentear com PIX'}
-          </button>
-        </form>
+        <Button type="button" variant="solid" disabled={pending} onClick={() => setOpen(true)}>
+          Presentear com PIX
+        </Button>
       )}
 
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
+
+      <Dialog open={dialogOpen} onClose={() => setOpen(false)} labelledBy="quota-confirm-title">
+        <h3 id="quota-confirm-title" className="font-display text-xl text-ink">
+          Seu presente
+        </h3>
+        <p className="mt-1 text-sm text-ink-soft">{item.name}</p>
+
+        <div className="mt-4 flex flex-col gap-1.5">
+          <label htmlFor={`dialog-quantity-${item.id}`} className="text-sm text-ink-soft">
+            Quantas cotas?
+          </label>
+          <Input
+            id={`dialog-quantity-${item.id}`}
+            type="number"
+            min={1}
+            max={maxQuantity}
+            value={quantity}
+            onChange={(event) =>
+              setQuantity(Math.min(Math.max(1, Number(event.target.value) || 1), maxQuantity))
+            }
+            className="w-24"
+          />
+        </div>
+
+        <dl className="mt-4 flex flex-col gap-2 text-sm">
+          {total != null && <Row label="Valor" value={formatPrice(total) ?? ''} />}
+          <Row label="Forma" value="PIX" />
+        </dl>
+
+        <form action={action} className="mt-6 flex gap-3">
+          <input type="hidden" name="itemId" value={item.id} />
+          <input type="hidden" name="quantity" value={quantity} />
+          <input type="hidden" name="fulfillmentMethod" value="pix" />
+          <Button type="button" variant="line" className="flex-1" onClick={() => setOpen(false)}>
+            Cancelar
+          </Button>
+          <Button type="submit" variant="accent" className="flex-1" disabled={pending}>
+            {pending ? 'Registrando…' : 'Confirmar reserva'}
+          </Button>
+        </form>
+      </Dialog>
+    </div>
+  )
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-b border-dashed border-canvas-line pb-2">
+      <dt className="text-ink-soft">{label}</dt>
+      <dd className="text-right font-medium text-ink">{value}</dd>
     </div>
   )
 }

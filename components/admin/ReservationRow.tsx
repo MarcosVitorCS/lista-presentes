@@ -43,30 +43,34 @@ export function ReservationRow({
   const busy = confirmPending || cancelPending
 
   return (
-    <div className="flex flex-col gap-2 rounded-[var(--radius)] border border-canvas-line bg-canvas p-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
+    // gap-3 e items-start (não items-center): com dois botões empilhados no
+    // mobile, centralizar deixava o nome do item flutuando no meio da linha.
+    // min-w-0 no bloco de texto é o que permite o nome longo truncar em vez de
+    // empurrar os botões fora da tela em 390px.
+    <div className="flex flex-col gap-3 rounded-[var(--radius-lg)] border border-canvas-line bg-canvas p-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <div className="min-w-0">
         <p className="font-semibold text-ink">
           {reservation.gift_items?.name ?? 'Item removido'} · {reservation.quantity}x
         </p>
-        <p className="text-sm text-ink-soft">
+        <p className="text-caption text-ink-soft">
           {reservation.guests?.name ?? 'Convidado'}
           {reservation.guests?.contact ? ` — ${reservation.guests.contact}` : ''}
         </p>
-        <p className="text-xs text-ink-soft">
+        <p className="mt-0.5 text-xs tabular-nums text-ink-soft">
           {reservation.fulfillment_method === 'pix'
             ? `PIX · ${formatPrice(reservation.declared_amount)}`
             : 'Físico'}
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
         <Badge tone={STATUS_TONE[reservation.status]}>{STATUS_LABEL[reservation.status]}</Badge>
 
         {!readOnly && reservation.status === 'pending' && reservation.fulfillment_method === 'pix' && (
           <form action={confirmAction}>
             <input type="hidden" name="reservationId" value={reservation.id} />
-            <Button type="submit" variant="solid" size="sm" disabled={busy}>
-              {confirmPending ? 'Confirmando…' : 'Confirmar PIX'}
+            <Button type="submit" variant="solid" size="sm" loading={confirmPending} disabled={busy}>
+              Confirmar PIX
             </Button>
           </form>
         )}
@@ -74,15 +78,17 @@ export function ReservationRow({
         {!readOnly && reservation.status !== 'cancelled' && (
           <form action={cancelAction}>
             <input type="hidden" name="reservationId" value={reservation.id} />
-            <Button type="submit" variant="line" size="sm" disabled={busy}>
-              {cancelPending ? 'Cancelando…' : 'Cancelar'}
+            <Button type="submit" variant="line" size="sm" loading={cancelPending} disabled={busy}>
+              Cancelar
             </Button>
           </form>
         )}
       </div>
 
       {(confirmState?.error || cancelState?.error) && (
-        <p className="text-sm text-danger sm:basis-full">{confirmState?.error ?? cancelState?.error}</p>
+        <p role="alert" className="text-caption font-medium text-danger sm:basis-full">
+          {confirmState?.error ?? cancelState?.error}
+        </p>
       )}
     </div>
   )

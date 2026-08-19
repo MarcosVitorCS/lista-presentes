@@ -2,9 +2,10 @@
 
 import { useActionState } from 'react'
 import { createOccasion, updateOccasion } from '@/app/actions/occasions'
-import { Input, Textarea, Label } from '@/components/ui/Input'
+import { Input, Textarea, Select, Field } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
 import { useActionToast } from '@/components/ui/Toast'
 import type { Database } from '@/types/database'
 
@@ -12,7 +13,14 @@ type OccasionRow = Database['public']['Tables']['event_occasions']['Row']
 type GiftListRow = Pick<Database['public']['Tables']['gift_lists']['Row'], 'id' | 'name'>
 
 const fileInputClass =
-  'text-sm text-ink-soft file:mr-3 file:rounded-[var(--radius)] file:border-0 file:bg-ink-deep file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-on-deep'
+  'text-sm text-ink-soft file:mr-3 file:min-h-11 file:rounded-[var(--radius)] file:border-0 file:bg-ink-deep file:px-4 file:text-sm file:font-medium file:text-on-deep'
+
+// Alternador com estado visível na linha inteira e 44px de área — eram
+// checkboxes nativos colados num texto de 14px.
+const toggleClass =
+  'flex min-h-11 cursor-pointer items-center gap-2 rounded-[var(--radius)] border border-canvas-line px-3 text-sm text-ink-soft transition-colors duration-[var(--duration-hover)] has-[:checked]:border-accent-strong has-[:checked]:bg-canvas-alt has-[:checked]:text-ink'
+const removeToggleClass =
+  'flex min-h-11 cursor-pointer items-center gap-2 rounded-[var(--radius)] border border-canvas-line px-3 text-sm text-ink-soft transition-colors duration-[var(--duration-hover)] has-[:checked]:border-danger has-[:checked]:bg-danger-soft has-[:checked]:text-danger'
 
 export function OccasionsManager({
   eventId,
@@ -36,26 +44,32 @@ export function OccasionsManager({
   )
 }
 
+/**
+ * O select agora RECEBE o id. Antes ele não tinha id nenhum, enquanto os dois
+ * rótulos apontavam pra `new-list` e `list-${id}` — htmlFor apontando pro vazio,
+ * ou seja, o campo "Lista vinculada" não tinha rótulo associado em lugar
+ * nenhum (clicar no texto não focava o campo, e o leitor de tela anunciava
+ * apenas "caixa de combinação").
+ */
 function GiftListSelect({
+  id,
   giftLists,
   defaultValue,
+  ...props
 }: {
+  id: string
   giftLists: GiftListRow[]
   defaultValue?: string | null
 }) {
   return (
-    <select
-      name="giftListId"
-      defaultValue={defaultValue ?? ''}
-      className="w-full rounded-[var(--radius)] border border-canvas-line bg-canvas px-3 py-2.5 text-sm text-ink focus:border-accent-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
-    >
+    <Select id={id} name="giftListId" defaultValue={defaultValue ?? ''} {...props}>
       <option value="">Sem lista vinculada</option>
       {giftLists.map((list) => (
         <option key={list.id} value={list.id}>
           {list.name}
         </option>
       ))}
-    </select>
+    </Select>
   )
 }
 
@@ -69,50 +83,53 @@ function NewOccasionForm({ eventId, giftLists }: { eventId: string; giftLists: G
         <p className="text-sm font-semibold text-ink">Adicionar ocasião</p>
         <input type="hidden" name="eventId" value={eventId} />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="new-name">Nome</Label>
-            <Input id="new-name" name="name" placeholder="Chá de Cozinha" required />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="new-list">Lista vinculada</Label>
-            <GiftListSelect giftLists={giftLists} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="new-date">Data</Label>
-            <Input id="new-date" name="occasionDate" type="date" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="new-time">Horário</Label>
-            <Input id="new-time" name="occasionTime" type="time" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="new-location">Nome do local</Label>
-            <Input id="new-location" name="locationName" placeholder="Mansão das Artes" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="new-order">Ordem de exibição</Label>
-            <Input id="new-order" name="displayOrder" type="number" min={0} defaultValue={0} />
-          </div>
+          <Field id="new-name" label="Nome">
+            {(props) => <Input {...props} name="name" placeholder="Chá de Cozinha" required />}
+          </Field>
+          <Field id="new-list" label="Lista vinculada">
+            {(props) => <GiftListSelect {...props} giftLists={giftLists} />}
+          </Field>
+          <Field id="new-date" label="Data">
+            {(props) => <Input {...props} name="occasionDate" type="date" />}
+          </Field>
+          <Field id="new-time" label="Horário">
+            {(props) => <Input {...props} name="occasionTime" type="time" />}
+          </Field>
+          <Field id="new-location" label="Nome do local">
+            {(props) => <Input {...props} name="locationName" placeholder="Mansão das Artes" />}
+          </Field>
+          <Field id="new-order" label="Ordem de exibição">
+            {(props) => (
+              <Input {...props} name="displayOrder" type="number" inputMode="numeric" min={0} defaultValue={0} />
+            )}
+          </Field>
         </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="new-address">Endereço</Label>
-          <Input id="new-address" name="address" placeholder="Av. dos Jardins, 850" />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="new-maps">Link do Google Maps (opcional)</Label>
-          <Input id="new-maps" name="googleMapsUrl" type="url" placeholder="Deixe em branco para gerar a partir do endereço" />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="new-description">Descrição (opcional)</Label>
-          <Textarea id="new-description" name="description" rows={2} />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="new-image">Imagem (opcional, até 5MB)</Label>
-          <input id="new-image" name="imageFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" className={fileInputClass} />
-        </div>
-        {state?.error && <p className="text-sm text-danger">{state.error}</p>}
-        <Button type="submit" disabled={pending} className="self-start">
-          {pending ? 'Adicionando…' : 'Adicionar ocasião'}
+        <Field id="new-address" label="Endereço">
+          {(props) => <Input {...props} name="address" placeholder="Av. dos Jardins, 850" />}
+        </Field>
+        <Field
+          id="new-maps"
+          label="Link do Google Maps"
+          hint="Opcional — em branco, geramos a partir do endereço."
+        >
+          {(props) => <Input {...props} name="googleMapsUrl" type="url" inputMode="url" />}
+        </Field>
+        <Field id="new-description" label="Descrição" hint="Opcional.">
+          {(props) => <Textarea {...props} name="description" rows={2} />}
+        </Field>
+        <Field id="new-image" label="Imagem" hint="Opcional, até 5MB." error={state?.error}>
+          {(props) => (
+            <input
+              {...props}
+              name="imageFile"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className={fileInputClass}
+            />
+          )}
+        </Field>
+        <Button type="submit" loading={pending} className="self-start">
+          Adicionar ocasião
         </Button>
       </Card>
     </form>
@@ -133,16 +150,34 @@ function OccasionForm({
 
   return (
     <form action={action}>
-      <Card className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm font-semibold text-ink">{occasion.name}</p>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <label className="flex items-center gap-2 text-sm text-ink-soft">
-              <input type="checkbox" name="isActive" defaultChecked={occasion.is_active} />
+      <Card elevation="raise" className="flex flex-col gap-4">
+        {/* O nome da ocasião passa a ser um h3 de verdade (era um <p> em
+            negrito), então a lista de ocasiões vira uma estrutura navegável
+            por cabeçalhos. O badge diz o estado sem precisar ler os
+            checkboxes. */}
+        <div className="flex flex-col gap-3 border-b border-canvas-line pb-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-display text-lg text-ink">{occasion.name}</h3>
+            {!occasion.is_active && <Badge tone="neutral">Oculta</Badge>}
+            {occasion.allow_rsvp && <Badge tone="success">RSVP ativo</Badge>}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <label className={toggleClass}>
+              <input
+                type="checkbox"
+                name="isActive"
+                defaultChecked={occasion.is_active}
+                className="h-4 w-4 accent-[var(--color-accent)]"
+              />
               Ativa (visível na landing)
             </label>
-            <label className="flex items-center gap-2 text-sm text-ink-soft">
-              <input type="checkbox" name="allowRsvp" defaultChecked={occasion.allow_rsvp} />
+            <label className={toggleClass}>
+              <input
+                type="checkbox"
+                name="allowRsvp"
+                defaultChecked={occasion.allow_rsvp}
+                className="h-4 w-4 accent-[var(--color-accent)]"
+              />
               Confirmação de presença ativada
             </label>
           </div>
@@ -151,74 +186,105 @@ function OccasionForm({
         <input type="hidden" name="eventId" value={eventId} />
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={`name-${occasion.id}`}>Nome</Label>
-            <Input id={`name-${occasion.id}`} name="name" defaultValue={occasion.name} required />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={`list-${occasion.id}`}>Lista vinculada</Label>
-            <GiftListSelect giftLists={giftLists} defaultValue={occasion.gift_list_id} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={`date-${occasion.id}`}>Data</Label>
-            <Input id={`date-${occasion.id}`} name="occasionDate" type="date" defaultValue={occasion.occasion_date ?? ''} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={`time-${occasion.id}`}>Horário</Label>
+          <Field id={`name-${occasion.id}`} label="Nome">
+            {(props) => <Input {...props} name="name" defaultValue={occasion.name} required />}
+          </Field>
+          <Field id={`list-${occasion.id}`} label="Lista vinculada">
+            {(props) => (
+              <GiftListSelect {...props} giftLists={giftLists} defaultValue={occasion.gift_list_id} />
+            )}
+          </Field>
+          <Field id={`date-${occasion.id}`} label="Data">
+            {(props) => (
+              <Input {...props} name="occasionDate" type="date" defaultValue={occasion.occasion_date ?? ''} />
+            )}
+          </Field>
+          <Field id={`time-${occasion.id}`} label="Horário">
+            {(props) => (
+              <Input
+                {...props}
+                name="occasionTime"
+                type="time"
+                defaultValue={occasion.occasion_time?.slice(0, 5) ?? ''}
+              />
+            )}
+          </Field>
+          <Field id={`location-${occasion.id}`} label="Nome do local">
+            {(props) => (
+              <Input {...props} name="locationName" defaultValue={occasion.location_name ?? ''} />
+            )}
+          </Field>
+          <Field id={`order-${occasion.id}`} label="Ordem de exibição">
+            {(props) => (
+              <Input
+                {...props}
+                name="displayOrder"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                defaultValue={occasion.display_order}
+              />
+            )}
+          </Field>
+        </div>
+
+        <Field id={`address-${occasion.id}`} label="Endereço">
+          {(props) => <Input {...props} name="address" defaultValue={occasion.address ?? ''} />}
+        </Field>
+        <Field id={`maps-${occasion.id}`} label="Link do Google Maps" hint="Opcional.">
+          {(props) => (
             <Input
-              id={`time-${occasion.id}`}
-              name="occasionTime"
-              type="time"
-              defaultValue={occasion.occasion_time?.slice(0, 5) ?? ''}
+              {...props}
+              name="googleMapsUrl"
+              type="url"
+              inputMode="url"
+              defaultValue={occasion.google_maps_url ?? ''}
             />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={`location-${occasion.id}`}>Nome do local</Label>
-            <Input id={`location-${occasion.id}`} name="locationName" defaultValue={occasion.location_name ?? ''} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={`order-${occasion.id}`}>Ordem de exibição</Label>
-            <Input id={`order-${occasion.id}`} name="displayOrder" type="number" min={0} defaultValue={occasion.display_order} />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`address-${occasion.id}`}>Endereço</Label>
-          <Input id={`address-${occasion.id}`} name="address" defaultValue={occasion.address ?? ''} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`maps-${occasion.id}`}>Link do Google Maps (opcional)</Label>
-          <Input id={`maps-${occasion.id}`} name="googleMapsUrl" type="url" defaultValue={occasion.google_maps_url ?? ''} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`description-${occasion.id}`}>Descrição (opcional)</Label>
-          <Textarea id={`description-${occasion.id}`} name="description" rows={2} defaultValue={occasion.description ?? ''} />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={`image-${occasion.id}`}>{occasion.image_url ? 'Trocar imagem' : 'Imagem (opcional)'}</Label>
-          <input
-            id={`image-${occasion.id}`}
-            name="imageFile"
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            className={fileInputClass}
-          />
-          {occasion.image_url && (
-            <div className="flex items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element -- vem do Supabase Storage */}
-              <img src={occasion.image_url} alt={occasion.name} className="h-20 w-20 rounded-[var(--radius)] border border-canvas-line object-cover" />
-              <label className="flex items-center gap-2 text-sm text-ink-soft">
-                <input type="checkbox" name="removeImage" />
-                Remover imagem atual
-              </label>
-            </div>
           )}
-        </div>
+        </Field>
+        <Field id={`description-${occasion.id}`} label="Descrição" hint="Opcional.">
+          {(props) => (
+            <Textarea {...props} name="description" rows={2} defaultValue={occasion.description ?? ''} />
+          )}
+        </Field>
 
-        {state?.error && <p className="text-sm text-danger">{state.error}</p>}
-        <Button type="submit" variant="line" disabled={pending} className="self-start">
-          {pending ? 'Salvando…' : 'Salvar'}
+        <Field
+          id={`image-${occasion.id}`}
+          label={occasion.image_url ? 'Trocar imagem' : 'Imagem'}
+          hint="Opcional."
+          error={state?.error}
+        >
+          {(props) => (
+            <input
+              {...props}
+              name="imageFile"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className={fileInputClass}
+            />
+          )}
+        </Field>
+        {occasion.image_url && (
+          <div className="flex flex-wrap items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element -- vem do Supabase Storage */}
+            <img
+              src={occasion.image_url}
+              alt={occasion.name}
+              className="h-20 w-20 rounded-[var(--radius)] border border-canvas-line object-cover"
+            />
+            <label className={removeToggleClass}>
+              <input
+                type="checkbox"
+                name="removeImage"
+                className="h-4 w-4 accent-[var(--color-danger)]"
+              />
+              Remover imagem atual
+            </label>
+          </div>
+        )}
+
+        <Button type="submit" variant="line" loading={pending} className="self-start">
+          Salvar
         </Button>
       </Card>
     </form>

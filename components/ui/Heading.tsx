@@ -1,12 +1,17 @@
 import type { HTMLAttributes, ElementType } from "react";
 import { cx } from "./utils";
 
-type HeadingSize = "xl" | "lg" | "md";
+type HeadingSize = "xl" | "lg" | "md" | "sm";
 
+// Os degraus vêm da escala tipográfica de globals.css (@theme inline), que
+// já carrega line-height e tracking — nada de leading solto no call site.
+// "sm" é novo: título de cartão do catálogo e de linha de tabela, que antes
+// caíam em "md" e ficavam grandes demais.
 const sizes: Record<HeadingSize, string> = {
-  xl: "text-5xl sm:text-7xl leading-[0.98]",
-  lg: "text-3xl sm:text-4xl leading-tight",
-  md: "text-xl sm:text-2xl leading-snug",
+  xl: "text-display-lg sm:text-display-xl",
+  lg: "text-display-md sm:text-display-lg",
+  md: "text-xl sm:text-display-md",
+  sm: "text-lg",
 };
 
 type HeadingProps = HTMLAttributes<HTMLHeadingElement> & {
@@ -25,10 +30,9 @@ export function Heading({ as: Tag = "h2", size = "lg", className, ...props }: He
 
 export function Eyebrow({ className, ...props }: HTMLAttributes<HTMLSpanElement>) {
   // accent-text (não accent-strong): em texto pequeno sobre pergaminho,
-  // accent-strong só bate 3.5:1 (falha os 4.5:1 exigidos pra texto normal) —
-  // ver auditoria de contraste da Fase 8. Passar className="text-accent"
-  // continua funcionando pra usos sobre fundo escuro (hero), onde o dourado
-  // original já passa (4.77:1).
+  // accent-strong só bate 3.5:1 (falha os 4.5:1 exigidos pra texto normal).
+  // Passar className="text-accent" continua funcionando pra usos sobre fundo
+  // escuro (hero), onde o dourado original já passa (4.77:1).
   return (
     <span
       className={cx(

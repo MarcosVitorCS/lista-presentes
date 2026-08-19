@@ -11,4 +11,6 @@ export * from "./Toast";
 export * from "./IconButton";
 export * from "./Skeleton";
 export * from "./SocialIcons";
+export * from "./Stat";
+export * from "./PageHeader";
 export * from "./utils";

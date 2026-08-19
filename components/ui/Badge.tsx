@@ -3,8 +3,8 @@ import { cx } from "./utils";
 
 export type BadgeTone = "success" | "warning" | "danger" | "neutral";
 
-// Cor semântica (status) é sempre separada do acento de marca (--color-accent)
-// — nunca usar o latão para indicar sucesso/erro/pendência.
+// Cor semântica (status) é sempre separada do acento de marca
+// (--color-accent) — nunca usar o latão para indicar sucesso/erro/pendência.
 const tones: Record<BadgeTone, string> = {
   success: "bg-success-soft text-success",
   warning: "bg-warning-soft text-warning",

@@ -6,7 +6,7 @@ import { GiftItemCard } from '@/components/public/GiftItemCard'
 import { GiftCatalog } from '@/components/public/GiftCatalog'
 import { PublicHeader } from '@/components/public/PublicHeader'
 import { EmptyState } from '@/components/public/EmptyState'
-import { Eyebrow } from '@/components/ui/Heading'
+import { PageHeader } from '@/components/ui/PageHeader'
 
 export default async function ChaDeCozinhaPage() {
   // "Antes de acessar as listas" o convidado precisa se identificar — não é
@@ -44,12 +44,8 @@ export default async function ChaDeCozinhaPage() {
   return (
     <>
       <PublicHeader />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-5 py-12 sm:px-8 sm:py-16">
-        <div className="flex flex-col gap-2">
-          <Eyebrow>{event.name}</Eyebrow>
-          <h1 className="font-display text-4xl text-ink">Chá de Cozinha</h1>
-          {list?.description && <p className="text-ink-soft">{list.description}</p>}
-        </div>
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-5 py-[var(--spacing-section)] sm:px-8">
+        <PageHeader eyebrow={event.name} title="Chá de Cozinha" description={list?.description ?? undefined} />
 
         {!items?.length ? (
           <EmptyState message="A lista está sendo preparada com carinho. Volte em breve. ❤" />

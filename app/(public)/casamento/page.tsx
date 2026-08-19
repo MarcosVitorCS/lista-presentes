@@ -6,7 +6,7 @@ import { QuotaItemCard } from '@/components/public/QuotaItemCard'
 import { GiftCatalog } from '@/components/public/GiftCatalog'
 import { PublicHeader } from '@/components/public/PublicHeader'
 import { EmptyState } from '@/components/public/EmptyState'
-import { Eyebrow } from '@/components/ui/Heading'
+import { PageHeader } from '@/components/ui/PageHeader'
 
 export default async function CasamentoPage() {
   const guestSession = await getGuestSession()
@@ -41,16 +41,12 @@ export default async function CasamentoPage() {
   return (
     <>
       <PublicHeader />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-5 py-12 sm:px-8 sm:py-16">
-        <div className="flex flex-col gap-2">
-          <Eyebrow>{event.name}</Eyebrow>
-          <h1 className="font-display text-4xl text-ink">Casamento</h1>
-          {list?.description && <p className="text-ink-soft">{list.description}</p>}
-          <p className="text-sm text-ink-soft">
-            Presenteie com uma ou mais cotas via PIX — a plataforma não processa pagamento, apenas
-            registra sua contribuição.
-          </p>
-        </div>
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-5 py-[var(--spacing-section)] sm:px-8">
+        <PageHeader eyebrow={event.name} title="Casamento" description={list?.description ?? undefined} />
+        <p className="text-caption text-ink-soft">
+          Presenteie com uma ou mais cotas via PIX — a plataforma não processa pagamento, apenas
+          registra sua contribuição.
+        </p>
 
         {!items?.length ? (
           <EmptyState message="A lista está sendo preparada com carinho. Volte em breve. ❤" />

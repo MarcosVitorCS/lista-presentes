@@ -4,6 +4,7 @@ import { DEFAULT_EVENT_SLUG } from '@/lib/constants'
 import { Section } from '@/components/ui/Section'
 import { Heading, Eyebrow } from '@/components/ui/Heading'
 import { buttonVariants } from '@/components/ui/Button'
+import { Logo } from '@/components/ui/Logo'
 import { Countdown } from '@/components/public/Countdown'
 import { OccasionCard } from '@/components/public/OccasionCard'
 import { Reveal } from '@/components/ui/Reveal'
@@ -22,6 +23,22 @@ const STEPS = [
   { n: 'III', text: 'Reserve o presente' },
   { n: 'IV', text: 'Pronto ❤' },
 ]
+
+/**
+ * Eyebrow + título de seção. Aparecia três vezes nesta página, cada vez com o
+ * mesmo bloco copiado — e por isso com margem inferior propensa a divergir.
+ * Local ao arquivo de propósito: é composição de página, não peça de kit.
+ */
+function SectionIntro({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return (
+    <Reveal>
+      <div className="mb-10 flex max-w-[34ch] flex-col gap-2 sm:mb-14">
+        <Eyebrow>{eyebrow}</Eyebrow>
+        <Heading as="h2">{title}</Heading>
+      </div>
+    </Reveal>
+  )
+}
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -74,9 +91,23 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* ---------- Marca da plataforma ---------- */}
+      {/* A home não tem PublicHeader (o hero é o topo), então a marca entra
+          numa faixa própria em cima do verde-tinta — discreta, sem competir
+          com o retrato e os nomes do casal, que são o assunto da página. */}
+      <div className="flex items-center justify-center bg-ink-deep px-5 pt-4 sm:pt-5">
+        <Logo tone="light" height={22} priority className="opacity-85" />
+      </div>
+
       {/* ---------- Hero ---------- */}
-      <Section tone="ink-deep" className="hero-glow py-20 sm:py-32">
-        <div className="flex flex-col items-center gap-7 text-center">
+      {/*
+        Hierarquia do hero, de cima pra baixo: retrato → ocasião → nomes →
+        frase → data → contagem → ação. Antes a data pontilhada e a contagem
+        tinham peso tipográfico parecido e disputavam a atenção; agora a data
+        é legenda (caption, tracking largo) e a contagem é o número grande.
+      */}
+      <Section tone="ink-deep" rhythm="lg" className="hero-glow">
+        <div className="flex flex-col items-center gap-6 text-center sm:gap-7">
           {event.image_url && (
             // eslint-disable-next-line @next/next/no-img-element -- vem do Supabase Storage, dimensão fixa via CSS
             <img
@@ -90,26 +121,28 @@ export default async function HomePage() {
             {event.name.split(' & ').map((part, i, arr) => (
               <span key={i}>
                 {part}
-                {i < arr.length - 1 && <em className="px-1 font-normal not-italic text-on-deep-soft">&amp;</em>}
+                {i < arr.length - 1 && (
+                  <em className="px-1 font-normal not-italic text-on-deep-soft">&amp;</em>
+                )}
               </span>
             ))}
           </Heading>
-          <p className="max-w-[34ch] text-balance text-base text-on-deep-soft sm:text-lg">
+          <p className="max-w-[34ch] text-balance text-body-md text-on-deep-soft sm:text-body-lg">
             {event.description || 'Estamos contando os dias para viver esse momento com você.'}
           </p>
 
           {formattedDate && (
-            <div className="flex items-center gap-3 text-sm font-semibold tracking-[0.06em] text-on-deep">
+            <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-on-deep-soft">
               <span>{formattedDate[0]}</span>
-              <span className="h-1 w-1 rounded-full bg-accent" />
+              <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
               <span>{formattedDate[1]}</span>
-              <span className="h-1 w-1 rounded-full bg-accent" />
+              <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
               <span>{formattedDate[2]}</span>
             </div>
           )}
 
           {event.event_date && (
-            <div className="mt-1">
+            <div className="mt-2">
               <Countdown targetDate={`${event.event_date}T00:00:00`} />
             </div>
           )}
@@ -117,7 +150,7 @@ export default async function HomePage() {
           {listsWithCounts.length > 0 && (
             <a
               href="#lista-de-presentes"
-              className={buttonVariants({ variant: 'ghost-dark', className: 'mt-3' })}
+              className={buttonVariants({ variant: 'ghost-dark', className: 'mt-4' })}
             >
               Ver a lista de presentes
               <ArrowRight size={16} strokeWidth={1.8} aria-hidden="true" />
@@ -128,24 +161,21 @@ export default async function HomePage() {
 
       {/* ---------- RSVP (só se ALGUMA ocasião tiver ativado) ---------- */}
       {occasions?.some((o) => o.allow_rsvp) && (
-        <div className="border-b border-canvas-line bg-canvas-alt px-5 py-4 text-center text-sm text-ink-soft sm:px-8">
-          Convidado? Você recebeu um link individual de confirmação de presença pelo WhatsApp ou
-          e-mail — é só abrir esse link pra confirmar.
+        <div className="border-b border-canvas-line bg-canvas-alt px-5 py-4 text-center text-caption text-ink-soft sm:px-8">
+          <p className="mx-auto max-w-[62ch]">
+            Convidado? Você recebeu um link individual de confirmação de presença pelo WhatsApp ou
+            e-mail — é só abrir esse link pra confirmar.
+          </p>
         </div>
       )}
 
       {/* ---------- Nossos Momentos ---------- */}
       {occasions && occasions.length > 0 && (
         <Section tone="canvas">
-          <Reveal>
-            <div className="mb-10 flex flex-col gap-2 sm:mb-14">
-              <Eyebrow>Nossos momentos</Eyebrow>
-              <Heading as="h2">Dois encontros, um só motivo</Heading>
-            </div>
-          </Reveal>
+          <SectionIntro eyebrow="Nossos momentos" title="Dois encontros, um só motivo" />
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             {occasions.map((occasion, i) => (
-              <Reveal key={occasion.id} delayMs={i * 90}>
+              <Reveal key={occasion.id} delayMs={i * 90} className="h-full">
                 <OccasionCard occasion={occasion} />
               </Reveal>
             ))}
@@ -156,13 +186,11 @@ export default async function HomePage() {
       {/* ---------- Lista de presentes ---------- */}
       {listsWithCounts.length > 0 && (
         <Section tone="canvas-alt" id="lista-de-presentes">
-          <Reveal>
-            <div className="mb-10 flex flex-col gap-2 sm:mb-14">
-              <Eyebrow>Lista de presentes</Eyebrow>
-              <Heading as="h2">Escolha uma lista</Heading>
-            </div>
-          </Reveal>
-          <Reveal delayMs={90} className="flex flex-col overflow-hidden rounded-[var(--radius)] border border-canvas-line">
+          <SectionIntro eyebrow="Lista de presentes" title="Escolha uma lista" />
+          <Reveal
+            delayMs={90}
+            className="flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-canvas-line"
+          >
             {listsWithCounts.map((list, i) => {
               const href = list.type === 'quota' ? '/casamento' : '/cha-de-cozinha'
               const Icon = list.type === 'quota' ? Heart : Gift
@@ -170,24 +198,33 @@ export default async function HomePage() {
                 <a
                   key={list.id}
                   href={href}
-                  className={`group flex items-center gap-4 bg-canvas px-5 py-5 transition-colors hover:bg-canvas-alt sm:px-7 ${i > 0 ? 'border-t border-canvas-line' : ''}`}
+                  className={`group flex min-h-16 items-center gap-4 bg-canvas px-5 py-5 transition-colors duration-[var(--duration-hover)] hover:bg-canvas-alt sm:px-7 ${i > 0 ? 'border-t border-canvas-line' : ''}`}
                 >
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-canvas-alt text-accent-strong transition-transform duration-300 group-hover:scale-110">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-canvas-alt text-accent-strong transition-transform duration-300 ease-[var(--ease-out)] group-hover:scale-110">
                     <Icon size={18} strokeWidth={1.6} aria-hidden="true" />
                   </span>
                   <span className="flex-1">
-                    <span className="block font-sans text-base font-semibold text-ink">{list.name}</span>
+                    <span className="block font-sans text-body-md font-semibold text-ink">
+                      {list.name}
+                    </span>
                     {list.description && (
-                      <span className="mt-0.5 block text-sm text-ink-soft">{list.description}</span>
+                      <span className="mt-0.5 block text-caption text-ink-soft">
+                        {list.description}
+                      </span>
                     )}
                   </span>
+                  {/*
+                    A contagem de itens aparece a partir de sm. No mobile ela
+                    era a primeira coisa a comprimir o nome da lista — e é a
+                    informação menos decisiva da linha.
+                  */}
                   <span className="hidden shrink-0 text-xs text-ink-soft sm:inline">
                     {list.count} {list.count === 1 ? 'item' : 'itens'}
                   </span>
                   <ArrowRight
                     size={16}
                     strokeWidth={1.8}
-                    className="shrink-0 text-accent-strong transition-transform group-hover:translate-x-1"
+                    className="shrink-0 text-accent-strong transition-transform duration-[var(--duration-hover)] ease-[var(--ease-out)] group-hover:translate-x-1"
                     aria-hidden="true"
                   />
                 </a>
@@ -198,46 +235,63 @@ export default async function HomePage() {
       )}
 
       {/* ---------- Como funciona ---------- */}
-      <Section tone="canvas">
-        <Reveal>
-          <div className="mb-10 flex flex-col gap-2 sm:mb-14">
-            <Eyebrow>Como funciona</Eyebrow>
-            <Heading as="h2">Quatro passos, sem complicação</Heading>
-          </div>
-        </Reveal>
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+      <Section tone="canvas" rhythm="tight">
+        <SectionIntro eyebrow="Como funciona" title="Quatro passos, sem complicação" />
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 sm:gap-8">
           {STEPS.map((step, i) => (
             <Reveal key={step.n} delayMs={i * 80}>
-              <span className="font-display text-2xl italic text-accent-strong">{step.n}.</span>
-              <p className="mt-1.5 text-sm text-ink-soft">{step.text}</p>
+              {/* O numeral vira borda inferior de latão: dá um marcador de
+                  passo sem gastar um ícone ou um cartão por item. */}
+              <span className="font-display text-display-md italic text-accent-strong">
+                {step.n}.
+              </span>
+              <p className="mt-1.5 border-t border-canvas-line pt-3 text-caption text-ink-soft">
+                {step.text}
+              </p>
             </Reveal>
           ))}
         </div>
       </Section>
 
       {/* ---------- Footer ---------- */}
-      <footer className="bg-ink-deep py-14 text-center text-on-deep-soft">
-        <p className="font-display text-2xl italic text-on-deep">{event.name}</p>
+      <footer className="bg-ink-deep py-14 text-center text-on-deep-soft sm:py-16">
+        <p className="font-display text-display-md italic text-on-deep">{event.name}</p>
         {formattedDate && (
           <p className="mt-1.5 text-xs tracking-[0.14em]">{formattedDate.join(' · ')}</p>
         )}
-        <p className="mx-auto mt-5 max-w-[30ch] text-sm">Obrigado por fazer parte desse momento.</p>
+        <p className="mx-auto mt-5 max-w-[30ch] text-caption">
+          Obrigado por fazer parte desse momento.
+        </p>
+
+        {/* Assinatura da plataforma: o rodapé é onde a marca pode aparecer
+            por extenso sem disputar atenção com o evento. */}
+        <div className="mx-auto mt-10 flex max-w-[280px] flex-col items-center gap-2.5 border-t border-on-deep-soft/25 pt-6">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-on-deep-soft/75">
+            Lista de presentes feita no
+          </span>
+          <Logo tone="light" height={24} className="opacity-90" />
+        </div>
 
         {SOCIAL_LINKS.some(({ key }) => event[key]) && (
-          <div className="mt-6 flex items-center justify-center gap-4">
+          <div className="mt-6 flex items-center justify-center gap-2">
             {SOCIAL_LINKS.map(({ key, label, Icon }) => {
               const url = event[key]
               if (!url) return null
               return (
+                // h-11 w-11 (44px) em vez de h-9 w-9: são os alvos de toque
+                // mais apertados da página pública. O círculo visível continua
+                // menor — cresce a área, não o desenho.
                 <a
                   key={key}
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-on-deep-soft/30 text-on-deep-soft transition-colors hover:border-accent hover:text-accent"
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-on-deep-soft transition-colors duration-[var(--duration-hover)] hover:text-accent"
                 >
-                  <Icon size={16} strokeWidth={1.6} />
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full border border-on-deep-soft/30 transition-colors duration-[var(--duration-hover)] hover:border-accent">
+                    <Icon size={16} strokeWidth={1.6} />
+                  </span>
                 </a>
               )
             })}

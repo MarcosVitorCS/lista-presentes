@@ -12,10 +12,10 @@ export default function DashboardError({ error }: { error: Error & { digest?: st
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 px-5 text-center">
-      <h1 className="font-display text-xl text-ink">
+      <h1 className="font-display text-display-md text-ink">
         {isMissingEvent ? 'Sua conta não está vinculada a nenhum evento' : 'Algo deu errado'}
       </h1>
-      <p className="text-sm text-ink-soft">
+      <p className="text-caption text-ink-soft">
         {isMissingEvent
           ? 'Você tem uma conta válida, mas ela ainda não foi associada a um evento em event_admins. Isso normalmente significa que o bootstrap (supabase/seed/001_bootstrap.sql) não foi concluído — falta o INSERT do passo 4.'
           : 'Não foi possível carregar o painel administrativo agora.'}

@@ -2,7 +2,7 @@ import { getAdminEvent } from '@/lib/dal/admin-session'
 import { createClient } from '@/lib/supabase/server'
 import { EventSettingsForm } from '@/components/admin/EventSettingsForm'
 import { OccasionsManager } from '@/components/admin/OccasionsManager'
-import { Heading } from '@/components/ui/Heading'
+import { PageHeader } from '@/components/ui/PageHeader'
 
 export default async function AdminConfiguracoesPage() {
   const event = await getAdminEvent()
@@ -14,28 +14,24 @@ export default async function AdminConfiguracoesPage() {
   ])
 
   return (
-    <div className="flex flex-col gap-16">
+    <div className="flex flex-col gap-[var(--spacing-section)]">
       <div className="flex flex-col gap-6">
-        <div>
-          <Heading as="h2" size="md">
-            Informações do casamento
-          </Heading>
-          <p className="mt-1 text-sm text-ink-soft">
-            Esses dados aparecem nas páginas públicas e na confirmação de reserva por PIX.
-          </p>
-        </div>
+        <PageHeader
+          titleAs="h2"
+          eyebrow="Configurações"
+          title="Informações do casamento"
+          description="Esses dados aparecem nas páginas públicas e na confirmação de reserva por PIX."
+        />
         <EventSettingsForm event={event} />
       </div>
 
       <div className="flex flex-col gap-6">
-        <div>
-          <Heading as="h2" size="md">
-            Eventos
-          </Heading>
-          <p className="mt-1 text-sm text-ink-soft">
-            Chá de Cozinha, Casamento — ou qualquer outro momento que vocês queiram anunciar na landing.
-          </p>
-        </div>
+        <PageHeader
+          titleAs="h2"
+          eyebrow="Configurações"
+          title="Eventos"
+          description="Chá de Cozinha, Casamento — ou qualquer outro momento que vocês queiram anunciar na landing."
+        />
         <OccasionsManager eventId={event.id} occasions={occasions ?? []} giftLists={giftLists ?? []} />
       </div>
     </div>

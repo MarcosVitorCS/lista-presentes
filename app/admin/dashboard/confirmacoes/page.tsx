@@ -3,8 +3,9 @@ import { getAdminEvent } from '@/lib/dal/admin-session'
 import { createClient } from '@/lib/supabase/server'
 import { InvitationsManager, type InvitationRowData } from '@/components/admin/InvitationsManager'
 import { OccasionRsvpSelect } from '@/components/admin/OccasionRsvpSelect'
-import { Heading, Eyebrow } from '@/components/ui/Heading'
 import { Card } from '@/components/ui/Card'
+import { Label } from '@/components/ui/Input'
+import { PageHeader } from '@/components/ui/PageHeader'
 import type { RsvpStatus } from '@/types/database'
 
 export default async function AdminConfirmacoesPage(props: PageProps<'/admin/dashboard/confirmacoes'>) {
@@ -27,12 +28,14 @@ export default async function AdminConfirmacoesPage(props: PageProps<'/admin/das
 
   if (occasions.length === 0) {
     return (
-      <div className="flex flex-col gap-3">
-        <Eyebrow>Confirmação de presença</Eyebrow>
-        <Heading as="h2" size="md">Convidados</Heading>
-        <p className="text-sm text-ink-soft">
+      <div className="flex flex-col gap-6">
+        <PageHeader titleAs="h2" eyebrow="Confirmação de presença" title="Convidados" />
+        <p className="rounded-[var(--radius-lg)] border border-dashed border-canvas-line bg-canvas-alt px-5 py-8 text-center text-body-md text-ink-soft">
           Nenhuma ocasião com confirmação de presença ativada ainda. Ative em{' '}
-          <Link href="/admin/dashboard/configuracoes" className="text-accent-text underline underline-offset-2">
+          <Link
+            href="/admin/dashboard/configuracoes"
+            className="text-accent-text underline underline-offset-2"
+          >
             Configurações → Eventos
           </Link>
           , no card da ocasião que deve ter RSVP.
@@ -101,20 +104,19 @@ export default async function AdminConfirmacoesPage(props: PageProps<'/admin/das
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <Eyebrow>Confirmação de presença</Eyebrow>
-          <Heading as="h2" size="md">Convidados</Heading>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="occasion-select" className="text-xs uppercase tracking-[0.08em] text-ink-soft">
-            Ocasião
-          </label>
-          <OccasionRsvpSelect occasions={occasions} selectedId={selectedOccasionId} />
-        </div>
-      </div>
+      <PageHeader
+        titleAs="h2"
+        eyebrow="Confirmação de presença"
+        title="Convidados"
+        action={
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <Label htmlFor="occasion-select">Ocasião</Label>
+            <OccasionRsvpSelect occasions={occasions} selectedId={selectedOccasionId} />
+          </div>
+        }
+      />
 
-      <Card className="flex flex-col gap-5">
+      <Card elevation="raise" className="flex flex-col gap-5">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <Stat label="Convidados responsáveis" value={rows.length} />
           <Stat label="Confirmados" value={confirmed.length} tone="success" />
@@ -122,8 +124,9 @@ export default async function AdminConfirmacoesPage(props: PageProps<'/admin/das
           <Stat label="Recusados" value={declined.length} />
           <Stat label="Pessoas confirmadas" value={peopleConfirmed} tone="success" />
         </div>
-        <p className="border-t border-canvas-line pt-4 text-sm text-ink-soft">
-          {peopleInvited} {peopleInvited === 1 ? 'pessoa convidada' : 'pessoas convidadas'} no total nesta ocasião.
+        <p className="border-t border-canvas-line pt-4 text-caption text-ink-soft">
+          <span className="tabular-nums">{peopleInvited}</span>{' '}
+          {peopleInvited === 1 ? 'pessoa convidada' : 'pessoas convidadas'} no total nesta ocasião.
         </p>
       </Card>
 
@@ -132,10 +135,18 @@ export default async function AdminConfirmacoesPage(props: PageProps<'/admin/das
   )
 }
 
+/**
+ * Stat local, não o do kit: são cinco colunas em 390px (o kit não quebra o
+ * rótulo nem reduz o tamanho no mobile). Mesma decisão do dashboard.
+ */
 function Stat({ label, value, tone }: { label: string; value: number; tone?: 'success' | 'warning' }) {
   return (
     <div className="min-w-0">
-      <p className={`font-display text-2xl ${tone === 'success' ? 'text-success' : tone === 'warning' ? 'text-warning' : 'text-ink'}`}>
+      <p
+        className={`font-display text-2xl tabular-nums ${
+          tone === 'success' ? 'text-success' : tone === 'warning' ? 'text-warning' : 'text-ink'
+        }`}
+      >
         {value}
       </p>
       <p className="mt-0.5 break-words text-[10px] uppercase leading-snug tracking-[0.03em] text-ink-soft sm:text-xs sm:tracking-[0.08em]">

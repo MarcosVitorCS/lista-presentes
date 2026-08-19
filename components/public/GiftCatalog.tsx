@@ -2,6 +2,7 @@
 
 import { useState, type ComponentType } from 'react'
 import { Search, ChevronDown } from 'lucide-react'
+import { EmptyState } from './EmptyState'
 import { ReservedGiftCard } from './ReservedGiftCard'
 import type { Database } from '@/types/database'
 
@@ -66,13 +67,8 @@ export function GiftCatalog({
   const [reservedExpanded, setReservedExpanded] = useState(false)
   // ids que estavam disponíveis quando este catálogo montou. Confirmar uma
   // reserva chama revalidatePath no servidor, que atualiza `items` sem
-  // reload de página — sem isso, o item some da grade disponível (e do
-  // GiftItemCard que está mostrando "PIX registrado! Finalize o pagamento
-  // com a chave abaixo:") no exato momento em que o convidado precisa
-  // copiar a chave. Uma vez mostrado como interativo nesta sessão, o item
-  // continua sendo renderizado pelo ItemCard (que sabe mostrar seu próprio
-  // estado de sucesso) em vez de "rebaixado" pro card compacto de
-  // "Já escolhido" no meio do fluxo.
+  // reload de página — sem isso, o item some da grade disponível no exato
+  // momento em que o convidado precisa copiar a chave PIX.
   const [initialAvailableIds] = useState(
     () => new Set(items.filter((item) => item.quantity_available > 0).map((item) => item.id))
   )
@@ -81,8 +77,7 @@ export function GiftCatalog({
   const activeBucket = bucketIndex != null ? buckets[bucketIndex] : null
 
   // Disponibilidade é a divisão de mais alto nível — sempre em seções
-  // separadas, nunca misturadas na mesma grade (é o ponto central do pedido:
-  // indisponível não pode competir visualmente com disponível).
+  // separadas, nunca misturadas na mesma grade.
   const available: GiftItemPublic[] = []
   const reserved: GiftItemPublic[] = []
   for (const item of items) {
@@ -106,8 +101,7 @@ export function GiftCatalog({
   }
 
   // Disponível > relevância da busca > nome — nunca ordenação alfabética
-  // pura. A "relevância" aqui é simples (nome começa com o termo vence),
-  // suficiente pra um catálogo de dezenas de itens.
+  // pura.
   function sortItems(list: GiftItemPublic[]) {
     return list.slice().sort((a, b) => {
       if (hasQuery) {
@@ -124,9 +118,6 @@ export function GiftCatalog({
 
   const noResultsAtAll = hasActiveFilter && filteredAvailable.length === 0 && filteredReserved.length === 0
   const allReservedDefault = !hasActiveFilter && available.length === 0 && items.length > 0
-  // Buscando/filtrando e não sobrou nenhum disponível, mas achou algo entre
-  // os já escolhidos: abre a seção sozinha — nesse contexto é informação
-  // relevante, não ruído (o convidado quer saber se já foi escolhido).
   const forceReservedOpen = hasActiveFilter && filteredAvailable.length === 0 && filteredReserved.length > 0
   const reservedOpen = reservedExpanded || forceReservedOpen
 
@@ -148,10 +139,15 @@ export function GiftCatalog({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Busca + filtro de preço: sticky (fica visível durante a rolagem),
-          mas com hierarquia visual baixa — fundo translúcido, sem borda
-          pesada — pra não competir com os presentes. */}
-      <div className="sticky top-0 z-10 -mx-5 flex flex-col gap-3 bg-canvas/95 px-5 py-3 backdrop-blur-sm sm:-mx-8 sm:px-8">
+      {/*
+        Busca + filtro de preço: sticky, mas com hierarquia visual baixa —
+        fundo translúcido, sem borda pesada — pra não competir com os
+        presentes.
+        top-[var(--header-h)] e não top-0: o PublicHeader agora também é
+        sticky, e dois elementos em top-0 se sobrepõem. A altura do cabeçalho
+        vive num token pra que as duas peças nunca saiam de sincronia.
+      */}
+      <div className="sticky top-[var(--header-h)] z-10 -mx-5 flex flex-col gap-3 bg-canvas/95 px-5 py-3 backdrop-blur-sm sm:-mx-8 sm:px-8">
         <div className="relative">
           <Search
             size={17}
@@ -165,7 +161,7 @@ export function GiftCatalog({
             onChange={(event) => setQuery(event.target.value)}
             placeholder="O que você gostaria de presentear?"
             aria-label="Buscar presente pelo nome"
-            className="w-full rounded-full border border-canvas-line bg-canvas py-2.5 pl-10 pr-4 text-sm text-ink placeholder:text-ink-soft/70 focus:border-accent-strong focus:outline-none focus:ring-2 focus:ring-accent/40"
+            className="min-h-11 w-full rounded-full border border-field-line bg-field py-2.5 pl-10 pr-4 text-sm text-ink placeholder:text-ink-soft transition-[border-color,box-shadow] duration-[var(--duration-hover)] focus:border-accent-strong focus:outline-none focus:ring-3 focus:ring-accent/30"
           />
         </div>
 
@@ -173,38 +169,55 @@ export function GiftCatalog({
           <div className="no-scrollbar flex gap-2 overflow-x-auto">
             <FilterChip label="Todos" active={bucketIndex === null} onClick={() => setBucketIndex(null)} />
             {buckets.map((bucket, i) => (
-              <FilterChip key={bucket.label} label={bucket.label} active={bucketIndex === i} onClick={() => setBucketIndex(i)} />
+              <FilterChip
+                key={bucket.label}
+                label={bucket.label}
+                active={bucketIndex === i}
+                onClick={() => setBucketIndex(i)}
+              />
             ))}
           </div>
         )}
 
-        <p className="text-xs text-ink-soft">{statusLine}</p>
+        {/*
+          role="status" + aria-live: filtrar mudava a contagem de resultados
+          em silêncio pra quem usa leitor de tela — a pessoa digitava e nada
+          era anunciado. É a mesma frase que já estava na tela, agora também
+          audível.
+        */}
+        <p role="status" aria-live="polite" className="text-xs text-ink-soft">
+          {statusLine}
+        </p>
       </div>
 
       {noResultsAtAll ? (
-        <div className="rounded-[var(--radius)] border border-dashed border-canvas-line bg-canvas-alt px-6 py-12 text-center">
-          <p className="mx-auto max-w-[36ch] text-ink-soft">Não encontramos nenhum presente com esses critérios.</p>
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="mt-4 text-sm font-semibold text-accent-text underline underline-offset-2"
-          >
-            Limpar filtros
-          </button>
-        </div>
+        <EmptyState
+          message="Não encontramos nenhum presente com esses critérios."
+          action={
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="flex min-h-11 items-center px-2 text-sm font-semibold text-accent-text underline underline-offset-2"
+            >
+              Limpar filtros
+            </button>
+          }
+        />
       ) : allReservedDefault ? (
-        <div className="rounded-[var(--radius)] border border-dashed border-canvas-line bg-canvas-alt px-6 py-12 text-center">
-          <p className="mx-auto max-w-[36ch] text-ink-soft">Todos os presentes já foram escolhidos ❤️</p>
-          <button
-            type="button"
-            onClick={() => setReservedExpanded(true)}
-            className="mt-4 text-sm font-semibold text-accent-text underline underline-offset-2"
-          >
-            Ver presentes escolhidos
-          </button>
-        </div>
+        <EmptyState
+          message="Todos os presentes já foram escolhidos ❤️"
+          action={
+            <button
+              type="button"
+              onClick={() => setReservedExpanded(true)}
+              className="flex min-h-11 items-center px-2 text-sm font-semibold text-accent-text underline underline-offset-2"
+            >
+              Ver presentes escolhidos
+            </button>
+          }
+        />
       ) : filteredAvailable.length === 0 ? (
-        <p className="text-sm text-ink-soft">Nenhum presente disponível com esses critérios.</p>
+        <p className="text-caption text-ink-soft">Nenhum presente disponível com esses critérios.</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {filteredAvailable.map((item) => (
@@ -218,13 +231,13 @@ export function GiftCatalog({
           <button
             type="button"
             onClick={() => setReservedExpanded((v) => !v)}
-            className="flex items-center gap-2 self-start text-sm font-medium text-ink-soft transition-colors hover:text-ink"
+            className="-mx-2 flex min-h-11 items-center gap-2 self-start px-2 text-sm font-medium text-ink-soft transition-colors duration-[var(--duration-hover)] hover:text-ink"
             aria-expanded={reservedOpen}
           >
             <ChevronDown
               size={16}
               strokeWidth={1.8}
-              className={`transition-transform duration-200 ${reservedOpen ? 'rotate-180' : ''}`}
+              className={`transition-transform duration-[var(--duration-hover)] ease-[var(--ease-out)] ${reservedOpen ? 'rotate-180' : ''}`}
               aria-hidden="true"
             />
             Já escolhidos ({filteredReserved.length})
@@ -232,7 +245,9 @@ export function GiftCatalog({
 
           {reservedOpen &&
             (filteredReserved.length === 0 ? (
-              <p className="text-sm text-ink-soft">Nenhum presente escolhido corresponde a esses critérios.</p>
+              <p className="text-caption text-ink-soft">
+                Nenhum presente escolhido corresponde a esses critérios.
+              </p>
             ) : (
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredReserved.map((item) => (
@@ -246,12 +261,16 @@ export function GiftCatalog({
   )
 }
 
+// min-h-11: o chip tinha 28px de altura — o menor alvo de toque da tela
+// pública, num controle que no mobile é justamente onde o dedo erra. O
+// desenho continua discreto (pílula, texto pequeno); só a área cresceu.
 function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+      aria-pressed={active}
+      className={`flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full border px-4 text-xs font-semibold transition-colors duration-[var(--duration-hover)] ${
         active
           ? 'border-ink-deep bg-ink-deep text-on-deep'
           : 'border-canvas-line bg-canvas text-ink-soft hover:border-accent-strong hover:text-ink'

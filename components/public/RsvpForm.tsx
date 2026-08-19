@@ -18,25 +18,17 @@ export function RsvpForm({ token, partyMembers }: { token: string; partyMembers:
 
   // "Ajustar estado durante o render" (não é useEffect — roda de forma
   // síncrona antes do paint, sem cascata de re-render): toda vez que uma
-  // submissão nova termina, sai do modo de edição automaticamente. Sem
-  // isso, "editing" ficaria travado true pra sempre depois do primeiro
-  // "Alterar resposta", escondendo a tela de resultado mesmo após uma
-  // confirmação bem-sucedida. Resetar via onClick no botão de envio (a
-  // tentativa anterior) causava uma corrida real: o clique disparava
-  // setEditing(false) e um re-render síncrono ANTES do navegador capturar
-  // os checkboxes marcados pro FormData, fazendo o envio ir com valores
-  // incompletos.
+  // submissão nova termina, sai do modo de edição automaticamente. Sem isso,
+  // "editing" ficaria travado true pra sempre depois do primeiro "Alterar
+  // resposta". Resetar via onClick no botão de envio causava uma corrida real:
+  // o clique disparava setEditing(false) e um re-render síncrono ANTES do
+  // navegador capturar os checkboxes marcados pro FormData.
   if (state !== lastHandledState) {
     setLastHandledState(state)
     if (state?.success) setEditing(false)
   }
 
-  // Reflete sempre o dado mais recente: o retorno da action se já
-  // submeteu algo nesta página, senão o que o servidor já sabia.
   const effectiveMembers = state?.success && state.partyMembers ? state.partyMembers : partyMembers
-  // "Fresh" (nunca respondido) só é verdade se TODO mundo ainda está
-  // pending — depois de qualquer submissão, submit_rsvp sempre marca todo
-  // mundo confirmed/declined, então isso nunca fica "meio pending".
   const fresh = effectiveMembers.every((m) => m.status === 'pending')
   const responded = (state?.success === true || !fresh) && !editing
 
@@ -48,19 +40,27 @@ export function RsvpForm({ token, partyMembers }: { token: string; partyMembers:
     const confirmedNames = effectiveMembers.filter((m) => m.status === 'confirmed').map((m) => m.name)
 
     return (
-      <div className="flex flex-col gap-4 rounded-[var(--radius)] border border-canvas-line bg-canvas p-6 text-center">
+      // role="status": depois do envio, a resposta registrada é a única coisa
+      // que muda na tela — sem isso, quem usa leitor de tela não recebia
+      // nenhuma confirmação de que a ação deu certo.
+      <div
+        role="status"
+        className="flex flex-col gap-4 rounded-[var(--radius-lg)] border border-canvas-line bg-canvas p-6 text-center shadow-raise"
+      >
         {confirmedNames.length > 0 ? (
           <>
-            <p className="font-display text-2xl text-ink">Presença confirmada! ❤️</p>
-            <p className="text-ink-soft">
+            <p className="font-display text-display-md text-ink">Presença confirmada! ❤️</p>
+            <p className="text-body-md text-ink-soft">
               {joinNames(confirmedNames)} {confirmedNames.length === 1 ? 'estará' : 'estarão'} conosco.
             </p>
-            <p className="text-sm text-ink-soft">Será uma alegria celebrar esse momento com vocês!</p>
+            <p className="text-caption text-ink-soft">
+              Será uma alegria celebrar esse momento com vocês!
+            </p>
           </>
         ) : (
           <>
-            <p className="font-display text-2xl text-ink">Tudo bem! ❤</p>
-            <p className="text-ink-soft">
+            <p className="font-display text-display-md text-ink">Tudo bem! ❤</p>
+            <p className="text-body-md text-ink-soft">
               Registramos que vocês não poderão comparecer. Se mudar de ideia, é só voltar aqui.
             </p>
           </>
@@ -68,7 +68,7 @@ export function RsvpForm({ token, partyMembers }: { token: string; partyMembers:
         <button
           type="button"
           onClick={startEditing}
-          className="self-center text-sm text-accent-text underline underline-offset-2"
+          className="mx-auto flex min-h-11 items-center px-2 text-sm text-accent-text underline underline-offset-2"
         >
           Alterar resposta
         </button>
@@ -77,15 +77,22 @@ export function RsvpForm({ token, partyMembers }: { token: string; partyMembers:
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <form action={action} className="flex flex-col gap-4">
         <input type="hidden" name="token" value={token} />
-        <p className="text-sm text-ink-soft">Quem estará presente?</p>
-        <div className="flex flex-col gap-2">
+        <fieldset className="flex flex-col gap-2 border-0 p-0">
+          {/* fieldset + legend: os nomes eram um <p> solto acima de checkboxes
+              soltos, então o leitor de tela anunciava "caixa de seleção,
+              Rafaely" sem nunca dizer a pergunta. */}
+          <legend className="mb-2 text-caption text-ink-soft">Quem estará presente?</legend>
           {effectiveMembers.map((member) => (
+            // has-[:checked] e has-[:focus-visible]: o estado selecionado era
+            // comunicado só pelo quadradinho nativo de 20px. Agora a linha
+            // inteira responde — borda de latão e fundo de papel — e o foco por
+            // teclado é visível na linha, não só no input.
             <label
               key={member.id}
-              className="flex items-center gap-3 rounded-[var(--radius)] border border-canvas-line bg-canvas px-4 py-3 text-sm text-ink transition-colors hover:border-accent-strong"
+              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-[var(--radius)] border border-canvas-line bg-canvas px-4 py-3 text-sm text-ink transition-colors duration-[var(--duration-hover)] hover:border-accent-strong has-[:checked]:border-accent-strong has-[:checked]:bg-canvas-alt has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent"
             >
               <input
                 type="checkbox"
@@ -100,22 +107,33 @@ export function RsvpForm({ token, partyMembers }: { token: string; partyMembers:
               </span>
             </label>
           ))}
-        </div>
-        <Button type="submit" variant="accent" disabled={pending}>
-          {pending ? 'Confirmando…' : 'Confirmar presença'}
+        </fieldset>
+        <Button type="submit" variant="accent" loading={pending}>
+          Confirmar presença
         </Button>
       </form>
 
-      <form action={action}>
+      {/*
+        Recusar não é uma segunda ação primária. Antes eram dois botões de
+        largura cheia empilhados, com peso visual parecido — a hierarquia
+        ficava ambígua justamente no momento da decisão. Agora vem depois de um
+        divisor, com rótulo de baixa hierarquia, e continua igualmente fácil de
+        achar (não escondido atrás de outro passo).
+      */}
+      <form action={action} className="flex flex-col items-center gap-2 border-t border-canvas-line pt-5">
         <input type="hidden" name="token" value={token} />
         {/* Sem checkboxes neste form — confirmedMemberId sempre vem vazio,
             o que a RPC trata como "ninguém confirmado" (recusa). */}
-        <Button type="submit" variant="line" className="w-full" disabled={pending}>
-          {pending ? 'Enviando…' : 'Não poderei comparecer'}
+        <Button type="submit" variant="line" size="sm" loading={pending}>
+          Não poderei comparecer
         </Button>
       </form>
 
-      {state?.error && <p className="text-center text-sm text-danger">{state.error}</p>}
+      {state?.error && (
+        <p role="alert" className="text-center text-caption font-medium text-danger">
+          {state.error}
+        </p>
+      )}
     </div>
   )
 }

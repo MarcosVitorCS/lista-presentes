@@ -28,9 +28,13 @@ export function GiftItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo
   const unavailable = item.quantity_available <= 0
   const busy = physicalPending || pixPending
   // Deriva a visibilidade do resumo direto do estado da reserva, em vez de
-  // sincronizar com um efeito — assim que uma reserva é confirmada, o
-  // resumo já nasce fechado no mesmo render (sem cascata de re-render).
+  // sincronizar com um efeito.
   const dialogOpen = confirmMethod !== null && !physicalState?.success && !pixState?.success
+  // O id do título precisa ser único por card: o catálogo renderiza dezenas
+  // de Dialog na mesma página e todos usavam id="confirm-title". Ids
+  // duplicados quebram o aria-labelledby (o leitor de tela resolve sempre
+  // para o primeiro do documento, não para o modal aberto).
+  const titleId = `confirm-title-${item.id}`
 
   async function copyPixKey() {
     if (!pix.key) return
@@ -40,97 +44,119 @@ export function GiftItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo
   }
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-[var(--radius)] border border-canvas-line bg-canvas p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-strong/50 hover:shadow-[0_8px_24px_-12px_rgba(30,50,41,0.25)] sm:gap-3 sm:p-4">
+    <div className="flex flex-col gap-2.5 rounded-[var(--radius-lg)] border border-canvas-line bg-canvas p-3 transition-all duration-[var(--duration-hover)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-accent-strong/50 hover:shadow-float sm:gap-3 sm:p-4">
       {item.image_url && (
         // eslint-disable-next-line @next/next/no-img-element -- imagem vinda do Supabase Storage
-        <img src={item.image_url} alt={item.name} className="h-24 w-full rounded-[var(--radius)] object-cover sm:h-40" />
+        <img
+          src={item.image_url}
+          alt={item.name}
+          className="h-24 w-full rounded-[var(--radius)] object-cover sm:h-40"
+        />
       )}
 
-      <div>
+      <div className="flex flex-col gap-0.5">
         <h2 className="font-sans text-sm font-semibold text-ink sm:text-base">{item.name}</h2>
         {item.unit_price != null && (
-          <p className="mt-0.5 text-sm font-semibold text-accent-text">{formatPrice(item.unit_price)}</p>
+          <p className="text-sm font-semibold tabular-nums text-accent-text">
+            {formatPrice(item.unit_price)}
+          </p>
         )}
         {item.description && (
-          <p className="mt-0.5 line-clamp-2 text-xs text-ink-soft sm:text-sm">{item.description}</p>
+          <p className="line-clamp-2 text-xs text-ink-soft sm:text-caption">{item.description}</p>
         )}
         {item.purchase_url && (
           <a
             href={item.purchase_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-0.5 inline-block text-xs text-accent-text underline underline-offset-2 sm:text-sm"
+            className="mt-1 inline-flex min-h-11 items-center text-xs text-accent-text underline underline-offset-2 sm:min-h-0 sm:text-caption"
           >
             Ver sugestão de loja ↗
           </a>
         )}
       </div>
 
-      {physicalState?.success ? (
-        <p className="rounded-[var(--radius)] bg-success-soft px-3 py-2 text-xs text-success sm:text-sm">
-          Reservado! Obrigado — é só levar no dia do evento.
-        </p>
-      ) : pixState?.success ? (
-        <div className="flex flex-col gap-2 rounded-[var(--radius)] bg-success-soft px-3 py-3 text-xs text-success sm:text-sm">
-          <p>PIX registrado! Finalize o pagamento com a chave abaixo:</p>
-          {pix.key && (
-            <div className="flex items-center justify-between gap-2 rounded border border-success/30 bg-canvas px-2 py-1.5">
-              <code className="truncate text-xs">{pix.key}</code>
-              <button type="button" onClick={copyPixKey} className="shrink-0 text-xs underline">
-                {copied ? 'Copiado!' : 'Copiar'}
-              </button>
-            </div>
-          )}
-          {pix.ownerName && <p className="text-xs">Titular: {pix.ownerName}</p>}
-          {pix.qrCodeUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={pix.qrCodeUrl} alt="QR Code PIX" className="mx-auto h-40 w-40" />
-          )}
-        </div>
-      ) : unavailable ? (
-        <p className="rounded-[var(--radius)] bg-canvas-alt px-3 py-2 text-xs text-ink-soft sm:text-sm">
-          Já reservado por outro convidado
-        </p>
-      ) : (
-        <div className="flex flex-col gap-1.5 sm:gap-2">
-          {/* Sem size="sm" de propósito: px-6 py-3 do tamanho padrão do
-              Button garante uma área de toque perto de 44px — um CTA
-              principal compacto demais é o tipo de "otimização" que piora
-              a experiência mobile em vez de melhorar. */}
-          <Button
-            type="button"
-            variant="line"
-            className="w-full"
-            disabled={busy}
-            onClick={() => setConfirmMethod('physical')}
+      {/* mt-auto: com títulos e descrições de alturas diferentes, os botões de
+          dois cards vizinhos paravam em alturas distintas na grade. */}
+      <div className="mt-auto flex flex-col gap-1.5 sm:gap-2">
+        {physicalState?.success ? (
+          <p
+            role="status"
+            className="rounded-[var(--radius)] bg-success-soft px-3 py-2 text-xs text-success sm:text-caption"
           >
-            {/* Rótulo mais curto no mobile: em card estreito, o texto
-                completo quebra em 2 linhas e deixa o card mais alto do que
-                precisa — o objetivo explícito era o contrário. */}
-            <span className="sm:hidden">Vou levar</span>
-            <span className="hidden sm:inline">Vou comprar e levar</span>
-          </Button>
-          {item.unit_price != null && (
+            Reservado! Obrigado — é só levar no dia do evento.
+          </p>
+        ) : pixState?.success ? (
+          <div
+            role="status"
+            className="flex flex-col gap-2 rounded-[var(--radius)] bg-success-soft px-3 py-3 text-xs text-success sm:text-caption"
+          >
+            <p>PIX registrado! Finalize o pagamento com a chave abaixo:</p>
+            {pix.key && (
+              <div className="flex items-center justify-between gap-2 rounded border border-success/30 bg-field px-2 py-1">
+                <code className="truncate text-xs">{pix.key}</code>
+                {/* min-h-11: copiar a chave PIX é a ação mais importante desta
+                    etapa do fluxo e era um dos menores alvos da tela. */}
+                <button
+                  type="button"
+                  onClick={copyPixKey}
+                  className="flex min-h-11 shrink-0 items-center px-1 text-xs font-semibold underline"
+                >
+                  {copied ? 'Copiado!' : 'Copiar'}
+                </button>
+              </div>
+            )}
+            {pix.ownerName && <p className="text-xs">Titular: {pix.ownerName}</p>}
+            {pix.qrCodeUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={pix.qrCodeUrl} alt="QR Code PIX" className="mx-auto h-40 w-40" />
+            )}
+          </div>
+        ) : unavailable ? (
+          <p className="rounded-[var(--radius)] bg-canvas-alt px-3 py-2 text-xs text-ink-soft sm:text-caption">
+            Já reservado por outro convidado
+          </p>
+        ) : (
+          <>
+            {/* Sem size="sm" de propósito: o tamanho padrão do Button garante
+                44px de área de toque — um CTA principal compacto demais é o
+                tipo de "otimização" que piora a experiência mobile. */}
             <Button
               type="button"
-              variant="solid"
+              variant="line"
               className="w-full"
               disabled={busy}
-              onClick={() => setConfirmMethod('pix')}
+              onClick={() => setConfirmMethod('physical')}
             >
-              <span className="sm:hidden">Presentear</span>
-              <span className="hidden sm:inline">Presentear com PIX</span>
+              {/* Rótulo mais curto no mobile: em card estreito, o texto
+                  completo quebra em 2 linhas e deixa o card mais alto. */}
+              <span className="sm:hidden">Vou levar</span>
+              <span className="hidden sm:inline">Vou comprar e levar</span>
             </Button>
-          )}
-        </div>
-      )}
+            {item.unit_price != null && (
+              <Button
+                type="button"
+                variant="solid"
+                className="w-full"
+                disabled={busy}
+                onClick={() => setConfirmMethod('pix')}
+              >
+                <span className="sm:hidden">Presentear</span>
+                <span className="hidden sm:inline">Presentear com PIX</span>
+              </Button>
+            )}
+          </>
+        )}
 
-      {(physicalState?.error || pixState?.error) && (
-        <p className="text-xs text-danger sm:text-sm">{physicalState?.error ?? pixState?.error}</p>
-      )}
+        {(physicalState?.error || pixState?.error) && (
+          <p role="alert" className="text-xs font-medium text-danger sm:text-caption">
+            {physicalState?.error ?? pixState?.error}
+          </p>
+        )}
+      </div>
 
-      <Dialog open={dialogOpen} onClose={() => setConfirmMethod(null)} labelledBy="confirm-title">
-        <h3 id="confirm-title" className="font-display text-xl text-ink">
+      <Dialog open={dialogOpen} onClose={() => setConfirmMethod(null)} labelledBy={titleId}>
+        <h3 id={titleId} className="font-display text-xl text-ink">
           Seu presente
         </h3>
         <dl className="mt-4 flex flex-col gap-2 text-sm">
@@ -142,15 +168,26 @@ export function GiftItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo
           <Row label="Forma" value={confirmMethod === 'pix' ? 'PIX' : 'Físico — você compra e leva'} />
         </dl>
 
-        <form action={confirmMethod === 'pix' ? pixAction : physicalAction} className="mt-6 flex gap-3">
+        {/* flex-col-reverse no mobile: a ação de confirmar fica embaixo do
+            polegar e acima de "Cancelar" na ordem visual, sem trocar a ordem
+            do DOM (o foco por teclado continua Cancelar → Confirmar). */}
+        <form
+          action={confirmMethod === 'pix' ? pixAction : physicalAction}
+          className="mt-6 flex flex-col-reverse gap-3 sm:flex-row"
+        >
           <input type="hidden" name="itemId" value={item.id} />
           <input type="hidden" name="quantity" value={1} />
           <input type="hidden" name="fulfillmentMethod" value={confirmMethod ?? 'physical'} />
-          <Button type="button" variant="line" className="flex-1" onClick={() => setConfirmMethod(null)}>
+          <Button
+            type="button"
+            variant="line"
+            className="flex-1"
+            onClick={() => setConfirmMethod(null)}
+          >
             Cancelar
           </Button>
-          <Button type="submit" variant="accent" className="flex-1" disabled={busy}>
-            {busy ? 'Reservando…' : 'Confirmar reserva'}
+          <Button type="submit" variant="accent" className="flex-1" loading={busy}>
+            Confirmar reserva
           </Button>
         </form>
       </Dialog>

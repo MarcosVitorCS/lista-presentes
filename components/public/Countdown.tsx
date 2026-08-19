@@ -17,8 +17,7 @@ function diffParts(targetMs: number, nowMs: number): Parts | null {
 /**
  * SSR-safe: o primeiro render (servidor e cliente) mostra sempre o mesmo
  * placeholder ("—"), então nunca há divergência de hydration. Os valores
- * reais só chegam depois de montado, dentro do useEffect — é o padrão
- * recomendado pra qualquer widget que depende de `Date.now()`.
+ * reais só chegam depois de montado, dentro do useEffect.
  */
 export function Countdown({ targetDate }: { targetDate: string }) {
   const [parts, setParts] = useState<Parts | null | undefined>(undefined)
@@ -36,16 +35,28 @@ export function Countdown({ targetDate }: { targetDate: string }) {
   }
 
   if (parts === null) {
-    return <p className="font-display text-2xl text-on-deep">É hoje! Já estamos celebrando. ❤</p>
+    return <p className="font-display text-display-md text-on-deep">É hoje! Já estamos celebrando. ❤</p>
   }
 
   return (
-    <CountdownShell
-      days={String(parts.days)}
-      hours={String(parts.hours).padStart(2, '0')}
-      minutes={String(parts.minutes).padStart(2, '0')}
-      seconds={String(parts.seconds).padStart(2, '0')}
-    />
+    <>
+      <CountdownShell
+        days={String(parts.days)}
+        hours={String(parts.hours).padStart(2, '0')}
+        minutes={String(parts.minutes).padStart(2, '0')}
+        seconds={String(parts.seconds).padStart(2, '0')}
+      />
+      {/*
+        Os dígitos visuais são aria-hidden (um leitor de tela anunciando
+        segundos que mudam a cada tick é inutilizável). Antes disso deixava o
+        contador SEM nenhuma alternativa textual — quem usa leitor de tela
+        simplesmente não sabia que existia uma contagem. Esta frase, atualizada
+        só quando o dia muda, é a versão legível.
+      */}
+      <p className="sr-only">
+        Faltam {parts.days} {parts.days === 1 ? 'dia' : 'dias'} para a celebração.
+      </p>
+    </>
   )
 }
 
@@ -56,7 +67,7 @@ function CountdownShell({
   seconds,
 }: Record<'days' | 'hours' | 'minutes' | 'seconds', string>) {
   return (
-    <div className="flex gap-4 sm:gap-8" aria-hidden="true">
+    <div className="flex gap-3 sm:gap-8" aria-hidden="true">
       <Unit value={days} label="Dias" />
       <Sep />
       <Unit value={hours} label="Horas" />
@@ -70,10 +81,18 @@ function CountdownShell({
 
 function Unit({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex min-w-[3.2em] flex-col items-center gap-1.5">
+    <div className="flex min-w-[2.6em] flex-col items-center gap-1.5 sm:min-w-[3.2em]">
+      {/*
+        font-display (serifada) em vez de font-sans bold: dígito grande em
+        serifada é o que dá o tom editorial do produto — o mesmo tratamento do
+        componente Stat, pra que número grande tenha uma só voz no produto.
+        text-accent e não text-on-deep: o latão sobre o verde-tinta passa
+        4.77:1, e é o que faz a contagem virar o ponto focal do hero em vez de
+        competir com o nome do casal.
+      */}
       <span
         key={value}
-        className="animate-countdown-flip font-sans text-3xl font-bold tabular-nums text-on-deep sm:text-5xl"
+        className="animate-countdown-flip font-display text-4xl font-medium tabular-nums leading-none text-accent sm:text-6xl"
       >
         {value}
       </span>
@@ -83,5 +102,11 @@ function Unit({ value, label }: { value: string; label: string }) {
 }
 
 function Sep() {
-  return <span className="mt-1 self-start text-xl text-on-deep-soft/50 sm:mt-2 sm:text-3xl">:</span>
+  // O separador some no mobile: em 390px, quatro unidades + três dois-pontos
+  // brigam por largura e os dígitos encolhem. O gap já separa.
+  return (
+    <span className="mt-1 hidden self-start text-xl text-on-deep-soft/40 sm:mt-2 sm:inline sm:text-3xl">
+      :
+    </span>
+  )
 }

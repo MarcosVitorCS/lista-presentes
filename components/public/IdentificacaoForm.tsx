@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { identifyGuest } from '@/app/actions/guest'
 import { DEFAULT_EVENT_SLUG } from '@/lib/constants'
-import { Input, Label } from '@/components/ui/Input'
+import { Input, Field } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 
 function detectContactType(value: string): 'whatsapp' | 'email' {
@@ -16,34 +16,47 @@ export function IdentificacaoForm() {
   const next = searchParams.get('next') ?? '/'
   const [contact, setContact] = useState('')
   const [state, action, pending] = useActionState(identifyGuest, undefined)
+  const contactType = detectContactType(contact)
 
   return (
     <form action={action} className="flex flex-col gap-5">
       <input type="hidden" name="eventSlug" value={DEFAULT_EVENT_SLUG} />
       <input type="hidden" name="next" value={next} />
-      <input type="hidden" name="contactType" value={detectContactType(contact)} />
+      <input type="hidden" name="contactType" value={contactType} />
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="name">Nome completo</Label>
-        <Input id="name" name="name" required autoComplete="name" />
-      </div>
+      <Field id="name" label="Nome completo">
+        {(props) => <Input {...props} name="name" required autoComplete="name" />}
+      </Field>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="contact">WhatsApp ou e-mail</Label>
-        <Input
-          id="contact"
-          name="contact"
-          required
-          value={contact}
-          onChange={(event) => setContact(event.target.value)}
-          placeholder="(11) 99999-9999 ou voce@email.com"
-        />
-      </div>
+      {/*
+        O erro da action é do formulário como um todo (contato inválido é o
+        caso comum), então ele fica no campo de contato — antes era um <p>
+        solto entre o último campo e o botão, sem ligação com nada.
+        inputMode alterna com o que a pessoa está digitando: teclado numérico
+        pra telefone, teclado de e-mail quando aparece um "@".
+      */}
+      <Field
+        id="contact"
+        label="WhatsApp ou e-mail"
+        hint="Sem senha e sem criar conta."
+        error={state?.error}
+      >
+        {(props) => (
+          <Input
+            {...props}
+            name="contact"
+            required
+            value={contact}
+            onChange={(event) => setContact(event.target.value)}
+            inputMode={contactType === 'email' ? 'email' : 'tel'}
+            autoComplete={contactType === 'email' ? 'email' : 'tel'}
+            placeholder="(11) 99999-9999 ou voce@email.com"
+          />
+        )}
+      </Field>
 
-      {state?.error && <p className="text-sm text-danger">{state.error}</p>}
-
-      <Button type="submit" disabled={pending}>
-        {pending ? 'Confirmando…' : 'Continuar'}
+      <Button type="submit" loading={pending}>
+        Continuar
       </Button>
 
       <p className="text-xs text-ink-soft">

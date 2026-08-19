@@ -12,8 +12,8 @@ function formatPrice(value: number | null) {
  * Versão compacta e sem interação pra seção "Já escolhidos" — deliberadamente
  * um componente diferente do GiftItemCard/QuotaItemCard (não uma variante
  * deles) pra reduzir hierarquia visual de verdade: sem imagem grande, sem
- * botão, sem dialog. O item não pode mais ser reservado, então não faz
- * sentido reaproveitar a UI que existe pra reservar.
+ * botão, sem dialog. O item não pode mais ser reservado, então não faz sentido
+ * reaproveitar a UI que existe pra reservar.
  */
 export function ReservedGiftCard({ item }: { item: GiftItemPublic }) {
   const price = formatPrice(item.unit_price)
@@ -25,16 +25,16 @@ export function ReservedGiftCard({ item }: { item: GiftItemPublic }) {
         <img
           src={item.image_url}
           alt=""
-          className="h-11 w-11 shrink-0 rounded object-cover grayscale-[40%] opacity-80"
+          className="h-11 w-11 shrink-0 rounded-[var(--radius-sm)] object-cover opacity-80 grayscale-[40%]"
         />
       ) : (
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded bg-canvas text-ink-soft/70">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-canvas text-ink-soft/70">
           <Gift size={16} strokeWidth={1.6} aria-hidden="true" />
         </span>
       )}
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm text-ink-soft">{item.name}</p>
-        {price && <p className="text-xs text-ink-soft/70">{price}</p>}
+        {price && <p className="text-xs tabular-nums text-ink-soft">{price}</p>}
       </div>
       <span className="shrink-0 text-xs font-medium text-ink-soft">Escolhido</span>
     </div>

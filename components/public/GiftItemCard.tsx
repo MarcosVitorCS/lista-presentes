@@ -1,9 +1,10 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useRef, useState } from 'react'
 import { createReservation } from '@/app/actions/reservations'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
+import { ReservationProgress } from '@/components/public/ReservationProgress'
 import type { Database } from '@/types/database'
 
 type GiftItemPublic = Database['public']['Views']['gift_items_public']['Row']
@@ -24,6 +25,10 @@ export function GiftItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo
   const [pixState, pixAction, pixPending] = useActionState(createReservation, undefined)
   const [confirmMethod, setConfirmMethod] = useState<'physical' | 'pix' | null>(null)
   const [copied, setCopied] = useState(false)
+  // Origem visual do Dialog (components/ui/Dialog.tsx, prop originRef): o
+  // card inteiro, não um botão específico — o efeito precisa ler como "o
+  // presente cresceu", não "o botão cresceu".
+  const cardRef = useRef<HTMLDivElement>(null)
 
   const unavailable = item.quantity_available <= 0
   const busy = physicalPending || pixPending
@@ -44,14 +49,32 @@ export function GiftItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo
   }
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-[var(--radius-lg)] border border-canvas-line bg-canvas p-3 transition-all duration-[var(--duration-hover)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-accent-strong/50 hover:shadow-float sm:gap-3 sm:p-4">
+    <div
+      ref={cardRef}
+      className="flex flex-col gap-2.5 rounded-[var(--radius-lg)] border border-canvas-line bg-canvas p-3 transition-all duration-[var(--duration-hover)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-accent-strong/50 hover:shadow-float sm:gap-3 sm:p-4"
+    >
       {item.image_url && (
-        // eslint-disable-next-line @next/next/no-img-element -- imagem vinda do Supabase Storage
-        <img
-          src={item.image_url}
-          alt={item.name}
-          className="h-24 w-full rounded-[var(--radius)] object-cover sm:h-40"
-        />
+        // Entrada adicional pro dialog de confirmação (os dois botões de
+        // ação abaixo continuam intactos) — 'physical' como padrão porque é
+        // o único método sempre disponível quando o item não está esgotado;
+        // PIX depende de ter preço. Só vira botão quando há algo pra fazer.
+        <button
+          type="button"
+          disabled={unavailable}
+          onClick={() => setConfirmMethod('physical')}
+          className="group relative overflow-hidden rounded-[var(--radius)] disabled:cursor-default"
+          aria-label={unavailable ? item.name : `Ver ${item.name}`}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- imagem vinda do Supabase Storage */}
+          <img
+            src={item.image_url}
+            alt=""
+            className={`h-24 w-full object-cover transition-transform duration-[var(--duration-hover)] ease-[var(--ease-out)] sm:h-40 ${unavailable ? '' : 'group-hover:scale-[1.03]'}`}
+          />
+          {!unavailable && (
+            <span className="absolute inset-0 bg-ink-deep/0 transition-colors duration-[var(--duration-hover)] ease-[var(--ease-out)] group-hover:bg-ink-deep/10" />
+          )}
+        </button>
       )}
 
       <div className="flex flex-col gap-0.5">
@@ -75,6 +98,8 @@ export function GiftItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo
           </a>
         )}
       </div>
+
+      {!unavailable && <ReservationProgress demandLevel={item.demand_level} />}
 
       {/* mt-auto: com títulos e descrições de alturas diferentes, os botões de
           dois cards vizinhos paravam em alturas distintas na grade. */}
@@ -155,7 +180,13 @@ export function GiftItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo
         )}
       </div>
 
-      <Dialog open={dialogOpen} onClose={() => setConfirmMethod(null)} labelledBy={titleId}>
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setConfirmMethod(null)}
+        labelledBy={titleId}
+        originRef={cardRef}
+        className="gift-dialog"
+      >
         <h3 id={titleId} className="font-display text-xl text-ink">
           Seu presente
         </h3>

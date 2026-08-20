@@ -73,6 +73,12 @@
   --duration-tap: 120ms;
   --duration-hover: 200ms;
   --duration-enter: 400ms;
+  /* Só pro card-em-foco (components/ui/Dialog.tsx, prop originRef): um
+     movimento com distância de card até centro da tela é mais longo que
+     qualquer entrada existente — 400ms ficava lento demais de esperar,
+     mas precisa de mais que os 200ms de hover. Usado só em JS (WAAPI não lê
+     custom property, o valor está duplicado como literal em Dialog.tsx). */
+  --duration-morph: 300ms;
   --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
 
   /* Cor do anel de foco. NÃO é --color-accent: o latão claro dá 2.53:1 sobre
@@ -291,6 +297,60 @@ body::before {
 }
 .drawer-panel[open] .drawer-content {
   animation: fade-in-up var(--duration-enter) var(--ease-out) 80ms both;
+}
+
+/*
+ * Dialog do card de presente (GiftItemCard/QuotaItemCard) — components/ui/
+ * Dialog.tsx com originRef. No desktop, o crescimento a partir do card é
+ * feito em JS (WAAPI, dialog.animate — precisa saber de onde partir, um
+ * dado que só existe em runtime, então CSS puro não dá conta sozinho); esta
+ * regra cuida só do que É estático: o backdrop, com a mesma técnica
+ * @starting-style já usada no .drawer-panel acima. No mobile, sem espaço
+ * pra "encolher até um card" fazer sentido como interação, a MESMA classe
+ * vira bottom sheet — puramente CSS, reaproveitando o mesmo padrão do
+ * drawer, sem envolver WAAPI nenhum.
+ *
+ * Regras sem @layer de propósito: no Tailwind v4, CSS não-layered sempre
+ * ganha de utilitário (que o Tailwind gera dentro de @layer utilities) —
+ * é assim que max-width/margin abaixo conseguem sobrescrever o
+ * w-[min(92vw,440px)] padrão do Dialog em telas pequenas sem !important.
+ */
+.gift-dialog::backdrop {
+  background-color: color-mix(in srgb, var(--color-ink-deep) 60%, transparent);
+  backdrop-filter: blur(3px);
+  transition:
+    background-color var(--duration-morph) var(--ease-out),
+    backdrop-filter var(--duration-morph) var(--ease-out);
+}
+@starting-style {
+  .gift-dialog[open]::backdrop {
+    background-color: color-mix(in srgb, var(--color-ink-deep) 0%, transparent);
+    backdrop-filter: blur(0px);
+  }
+}
+
+@media (max-width: 767px) {
+  .gift-dialog {
+    margin: auto 0 0 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 85dvh;
+    overflow-y: auto;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    transform: translateY(100%);
+    transition:
+      transform var(--duration-enter) var(--ease-out),
+      overlay var(--duration-enter) var(--ease-out) allow-discrete,
+      display var(--duration-enter) var(--ease-out) allow-discrete;
+  }
+  .gift-dialog[open] {
+    transform: translateY(0);
+  }
+  @starting-style {
+    .gift-dialog[open] {
+      transform: translateY(100%);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

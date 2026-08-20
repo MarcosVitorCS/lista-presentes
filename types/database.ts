@@ -341,6 +341,9 @@ export type Database = {
           quantity_available: number
           is_active: boolean
           purchase_url: string | null
+          // Bucket qualitativo calculado na view (migration 00008) — nunca
+          // um número bruto de reserva. Ver comentário da view no banco.
+          demand_level: 'sold_out' | 'almost_gone' | 'some_reserved' | 'available'
         }
         Relationships: []
       }

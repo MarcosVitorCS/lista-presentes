@@ -3,11 +3,20 @@ import { cx } from "./utils";
 export function Progress({
   value,
   label,
+  valueText,
   className,
 }: {
   value: number;
   /** Descreve o que está progredindo, pro leitor de tela. */
   label?: string;
+  /**
+   * Sobrescreve o "N%" anunciado pro leitor de tela. Existe pra quando
+   * `value` não é uma porcentagem real, e sim um degrau simbólico (ex.:
+   * ReservationProgress, que nunca expõe a fração exata de reserva por
+   * privacidade) — anunciar "40%" nesse caso implicaria uma precisão que
+   * não existe.
+   */
+  valueText?: string;
   className?: string;
 }) {
   const clamped = Math.min(100, Math.max(0, value));
@@ -19,7 +28,7 @@ export function Progress({
       aria-valuenow={clamped}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-valuetext={`${Math.round(clamped)}%`}
+      aria-valuetext={valueText ?? `${Math.round(clamped)}%`}
     >
       <div
         // bg-accent-strong e não bg-accent: o latão claro contra a trilha de

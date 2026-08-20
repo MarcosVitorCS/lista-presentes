@@ -1,10 +1,11 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useRef, useState } from 'react'
 import { createReservation } from '@/app/actions/reservations'
 import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { Input, Label } from '@/components/ui/Input'
+import { ReservationProgress } from '@/components/public/ReservationProgress'
 import type { Database } from '@/types/database'
 
 type GiftItemPublic = Database['public']['Views']['gift_items_public']['Row']
@@ -25,6 +26,9 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
   const [quantity, setQuantity] = useState(1)
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  // Origem visual do Dialog (components/ui/Dialog.tsx, prop originRef) — ver
+  // o mesmo comentário em GiftItemCard.
+  const cardRef = useRef<HTMLDivElement>(null)
 
   const soldOut = item.quantity_available <= 0
   const maxQuantity = Math.max(item.quantity_available, 1)
@@ -42,14 +46,30 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
   }
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-[var(--radius-lg)] border border-canvas-line bg-canvas p-3 transition-all duration-[var(--duration-hover)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-accent-strong/50 hover:shadow-float sm:gap-3 sm:p-4">
+    <div
+      ref={cardRef}
+      className="flex flex-col gap-2.5 rounded-[var(--radius-lg)] border border-canvas-line bg-canvas p-3 transition-all duration-[var(--duration-hover)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-accent-strong/50 hover:shadow-float sm:gap-3 sm:p-4"
+    >
       {item.image_url && (
-        // eslint-disable-next-line @next/next/no-img-element -- imagem vinda do Supabase Storage
-        <img
-          src={item.image_url}
-          alt={item.name}
-          className="h-24 w-full rounded-[var(--radius)] object-cover sm:h-40"
-        />
+        // Mesma ideia de entrada adicional do GiftItemCard — aqui só existe
+        // um método (PIX), então o clique já é o próprio setOpen(true).
+        <button
+          type="button"
+          disabled={soldOut}
+          onClick={() => setOpen(true)}
+          className="group relative overflow-hidden rounded-[var(--radius)] disabled:cursor-default"
+          aria-label={soldOut ? item.name : `Ver ${item.name}`}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- imagem vinda do Supabase Storage */}
+          <img
+            src={item.image_url}
+            alt=""
+            className={`h-24 w-full object-cover transition-transform duration-[var(--duration-hover)] ease-[var(--ease-out)] sm:h-40 ${soldOut ? '' : 'group-hover:scale-[1.03]'}`}
+          />
+          {!soldOut && (
+            <span className="absolute inset-0 bg-ink-deep/0 transition-colors duration-[var(--duration-hover)] ease-[var(--ease-out)] group-hover:bg-ink-deep/10" />
+          )}
+        </button>
       )}
 
       <div className="flex flex-col gap-0.5">
@@ -72,15 +92,14 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
         )}
       </div>
 
-      {/*
-        Sem barra de progresso aqui de propósito: a view pública
-        (gift_items_public) não expõe quantity_total — só o disponível —
-        então não há como calcular "quanto já foi tomado" sem vazar o
-        tamanho original da cota, uma fronteira de privacidade proposital
-        do schema (ver comentário na migration 00001_init_schema.sql).
-      */}
       {!soldOut && (
-        <p className="text-xs tabular-nums text-ink-soft">{item.quantity_available} disponíveis</p>
+        <>
+          <p className="text-xs tabular-nums text-ink-soft">{item.quantity_available} disponíveis</p>
+          {/* Bucket privacy-safe (migration 00008) — nunca quantity_total
+              bruto, só um degrau qualitativo. Resolve o que o comentário
+              antigo aqui explicava não dar pra fazer sem vazar dado. */}
+          <ReservationProgress demandLevel={item.demand_level} />
+        </>
       )}
 
       <div className="mt-auto flex flex-col gap-2">
@@ -132,7 +151,13 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
         )}
       </div>
 
-      <Dialog open={dialogOpen} onClose={() => setOpen(false)} labelledBy={titleId}>
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setOpen(false)}
+        labelledBy={titleId}
+        originRef={cardRef}
+        className="gift-dialog"
+      >
         <h3 id={titleId} className="font-display text-xl text-ink">
           Seu presente
         </h3>

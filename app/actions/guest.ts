@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { setGuestSession } from '@/lib/dal/guest-session'
 import { identifyGuestSchema } from '@/lib/validations/guest'
+import { DEFAULT_EVENT_SLUG } from '@/lib/constants'
 
 export type IdentifyGuestActionState = { error?: string } | undefined
 
@@ -44,8 +45,11 @@ export async function identifyGuest(
 
   await setGuestSession({ guestId: guest.id, eventId: guest.event_id, name: guest.name })
 
-  const next = String(formData.get('next') ?? '/')
+  const eventHome = `/evento/${DEFAULT_EVENT_SLUG}`
+  const next = String(formData.get('next') ?? eventHome)
   // Só redireciona para caminhos internos — nunca para uma URL absoluta
-  // vinda do formulário (evita open redirect).
-  redirect(next.startsWith('/') ? next : '/')
+  // vinda do formulário (evita open redirect). Fallback vai pro evento, não
+  // pra `/` — `/` é a landing institucional da Listaae desde a separação
+  // produto/evento, não faz sentido como destino pós-identificação.
+  redirect(next.startsWith('/') ? next : eventHome)
 }

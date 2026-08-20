@@ -1,247 +1,133 @@
-import { Gift, Heart, ArrowRight } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
-import { DEFAULT_EVENT_SLUG } from '@/lib/constants'
+import Link from 'next/link'
+import {
+  ArrowRight,
+  Heart,
+  Gift,
+  PartyPopper,
+  GraduationCap,
+  Briefcase,
+  Sparkles,
+} from 'lucide-react'
 import { Section } from '@/components/ui/Section'
 import { Heading, Eyebrow } from '@/components/ui/Heading'
 import { buttonVariants } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 import { Logo } from '@/components/ui/Logo'
-import { Countdown } from '@/components/public/Countdown'
-import { OccasionCard } from '@/components/public/OccasionCard'
 import { Reveal } from '@/components/ui/Reveal'
-import { InstagramIcon, FacebookIcon, YoutubeIcon, WhatsappIcon } from '@/components/ui/SocialIcons'
 
-const SOCIAL_LINKS = [
-  { key: 'instagram_url', label: 'Instagram', Icon: InstagramIcon },
-  { key: 'facebook_url', label: 'Facebook', Icon: FacebookIcon },
-  { key: 'youtube_url', label: 'YouTube', Icon: YoutubeIcon },
-  { key: 'whatsapp_url', label: 'WhatsApp', Icon: WhatsappIcon },
+/**
+ * Home institucional da Listaae (o produto) — não depende de nenhum evento.
+ * Antes desta mudança, `/` renderizava o evento único hardcoded (ver
+ * components/public/EventHome.tsx, para onde essa lógica foi movida e agora
+ * vive em /evento/[slug]). Esta página não faz nenhuma query ao Supabase.
+ */
+
+const HOW_IT_WORKS = [
+  { n: 'I', text: 'Crie seu evento' },
+  { n: 'II', text: 'Personalize sua experiência' },
+  { n: 'III', text: 'Compartilhe com seus convidados' },
+  { n: 'IV', text: 'Gerencie tudo em um só lugar' },
+]
+
+const AUDIENCES = [
+  { label: 'Casamentos', Icon: Heart },
+  { label: 'Chás de cozinha', Icon: Gift },
+  { label: 'Aniversários', Icon: PartyPopper },
+  { label: 'Formaturas', Icon: GraduationCap },
+  { label: 'Eventos corporativos', Icon: Briefcase },
+  { label: 'Outros eventos', Icon: Sparkles },
 ] as const
 
-const STEPS = [
-  { n: 'I', text: 'Escolha um presente' },
-  { n: 'II', text: 'Informe seus dados' },
-  { n: 'III', text: 'Reserve o presente' },
-  { n: 'IV', text: 'Pronto ❤' },
+// Só recursos que já existem de verdade no produto — nada de promessa.
+const FEATURES = [
+  'Página personalizada do evento',
+  'Lista de presentes',
+  'Reservas de presentes',
+  'Pagamento/declaração via PIX',
+  'Confirmação de presença',
+  'Gestão de convidados',
+  'Dashboard administrativo',
+  'Informações de data e localização',
+  'Múltiplas ocasiões dentro de um evento',
+  'Experiência otimizada para celular',
 ]
 
 /**
- * Eyebrow + título de seção. Aparecia três vezes nesta página, cada vez com o
- * mesmo bloco copiado — e por isso com margem inferior propensa a divergir.
- * Local ao arquivo de propósito: é composição de página, não peça de kit.
+ * Eyebrow + título de seção — mesmo padrão local usado em EventHome, pra
+ * manter a mesma assinatura tipográfica entre a home institucional e a
+ * home de evento.
  */
-function SectionIntro({ eyebrow, title }: { eyebrow: string; title: string }) {
+function SectionIntro({
+  eyebrow,
+  title,
+  tone = 'ink',
+}: {
+  eyebrow: string
+  title: string
+  tone?: 'ink' | 'on-deep'
+}) {
   return (
     <Reveal>
-      <div className="mb-10 flex max-w-[34ch] flex-col gap-2 sm:mb-14">
-        <Eyebrow>{eyebrow}</Eyebrow>
-        <Heading as="h2">{title}</Heading>
+      <div className="mb-10 flex max-w-[38ch] flex-col gap-2 sm:mb-14">
+        <Eyebrow className={tone === 'on-deep' ? 'text-accent' : undefined}>{eyebrow}</Eyebrow>
+        <Heading as="h2" className={tone === 'on-deep' ? 'text-on-deep' : undefined}>
+          {title}
+        </Heading>
       </div>
     </Reveal>
   )
 }
 
-export default async function HomePage() {
-  const supabase = await createClient()
-
-  const { data: event } = await supabase
-    .from('events')
-    .select(
-      'id, name, event_date, description, image_url, hero_label, instagram_url, facebook_url, youtube_url, whatsapp_url'
-    )
-    .eq('slug', DEFAULT_EVENT_SLUG)
-    .maybeSingle()
-
-  if (!event) {
-    return (
-      <Section tone="canvas" className="flex-1">
-        <p className="text-ink-soft">Evento não encontrado.</p>
-      </Section>
-    )
-  }
-
-  const [{ data: occasions }, { data: giftLists }] = await Promise.all([
-    supabase
-      .from('event_occasions')
-      .select('*')
-      .eq('event_id', event.id)
-      .eq('is_active', true)
-      .order('display_order'),
-    supabase
-      .from('gift_lists')
-      .select('id, slug, type, name, description')
-      .eq('event_id', event.id)
-      .eq('is_active', true),
-  ])
-
-  const listsWithCounts = await Promise.all(
-    (giftLists ?? []).map(async (list) => {
-      const { count } = await supabase
-        .from('gift_items_public')
-        .select('*', { count: 'exact', head: true })
-        .eq('list_id', list.id)
-      return { ...list, count: count ?? 0 }
-    })
+// Sem "voltar" aqui — esta é a raiz do site, não uma tela dentro de um
+// fluxo de evento. Header próprio, simples: marca + "Entrar" (login do
+// admin, já existe e continua funcionando exatamente como hoje).
+function LandingHeader() {
+  return (
+    <header className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-canvas-line bg-canvas/85 px-5 py-3 backdrop-blur-md sm:px-8">
+      <Logo height={26} priority />
+      <Link
+        href="/admin/login"
+        className="flex min-h-11 items-center px-2 text-sm font-medium text-ink-soft transition-colors hover:text-accent-text"
+      >
+        Entrar
+      </Link>
+    </header>
   )
+}
 
-  const formattedDate = event.event_date
-    ? new Date(`${event.event_date}T00:00:00`)
-        .toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        .split('/')
-    : null
-
+export default function HomePage() {
   return (
     <>
-      {/* ---------- Marca da plataforma ---------- */}
-      {/* A home não tem PublicHeader (o hero é o topo), então a marca entra
-          numa faixa própria em cima do verde-tinta — discreta, sem competir
-          com o retrato e os nomes do casal, que são o assunto da página. */}
-      <div className="flex items-center justify-center bg-ink-deep px-5 pt-4 sm:pt-5">
-        <Logo tone="light" height={22} priority className="opacity-85" />
-      </div>
+      <LandingHeader />
 
       {/* ---------- Hero ---------- */}
-      {/*
-        Hierarquia do hero, de cima pra baixo: retrato → ocasião → nomes →
-        frase → data → contagem → ação. Antes a data pontilhada e a contagem
-        tinham peso tipográfico parecido e disputavam a atenção; agora a data
-        é legenda (caption, tracking largo) e a contagem é o número grande.
-      */}
       <Section tone="ink-deep" rhythm="lg" className="hero-glow">
         <div className="flex flex-col items-center gap-6 text-center sm:gap-7">
-          {event.image_url && (
-            // eslint-disable-next-line @next/next/no-img-element -- vem do Supabase Storage, dimensão fixa via CSS
-            <img
-              src={event.image_url}
-              alt={event.name}
-              className="h-28 w-28 rounded-full border-2 border-accent object-cover sm:h-32 sm:w-32"
-            />
-          )}
-          <Eyebrow className="text-accent">{event.hero_label}</Eyebrow>
+          <Eyebrow className="text-accent">A plataforma para o seu evento</Eyebrow>
           <Heading as="h1" size="xl" className="text-on-deep">
-            {event.name.split(' & ').map((part, i, arr) => (
-              <span key={i}>
-                {part}
-                {i < arr.length - 1 && (
-                  <em className="px-1 font-normal not-italic text-on-deep-soft">&amp;</em>
-                )}
-              </span>
-            ))}
+            Do convite <em className="font-normal not-italic text-on-deep-soft">à</em> celebração.
           </Heading>
-          <p className="max-w-[34ch] text-balance text-body-md text-on-deep-soft sm:text-body-lg">
-            {event.description || 'Estamos contando os dias para viver esse momento com você.'}
+          <p className="max-w-[42ch] text-balance text-body-md text-on-deep-soft sm:text-body-lg">
+            Uma experiência mais simples para quem organiza e mais especial para quem participa.
           </p>
-
-          {formattedDate && (
-            <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-on-deep-soft">
-              <span>{formattedDate[0]}</span>
-              <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
-              <span>{formattedDate[1]}</span>
-              <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
-              <span>{formattedDate[2]}</span>
-            </div>
-          )}
-
-          {event.event_date && (
-            <div className="mt-2">
-              <Countdown targetDate={`${event.event_date}T00:00:00`} />
-            </div>
-          )}
-
-          {listsWithCounts.length > 0 && (
-            <a
-              href="#lista-de-presentes"
-              className={buttonVariants({ variant: 'ghost-dark', className: 'mt-4' })}
-            >
-              Ver a lista de presentes
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+            <a href="#como-funciona" className={buttonVariants({ variant: 'accent' })}>
+              Conheça a Listaae
               <ArrowRight size={16} strokeWidth={1.8} aria-hidden="true" />
             </a>
-          )}
+            <a href="#comecar" className={buttonVariants({ variant: 'ghost-dark' })}>
+              Quero criar meu evento
+            </a>
+          </div>
         </div>
       </Section>
 
-      {/* ---------- RSVP (só se ALGUMA ocasião tiver ativado) ---------- */}
-      {occasions?.some((o) => o.allow_rsvp) && (
-        <div className="border-b border-canvas-line bg-canvas-alt px-5 py-4 text-center text-caption text-ink-soft sm:px-8">
-          <p className="mx-auto max-w-[62ch]">
-            Convidado? Você recebeu um link individual de confirmação de presença pelo WhatsApp ou
-            e-mail — é só abrir esse link pra confirmar.
-          </p>
-        </div>
-      )}
-
-      {/* ---------- Nossos Momentos ---------- */}
-      {occasions && occasions.length > 0 && (
-        <Section tone="canvas">
-          <SectionIntro eyebrow="Nossos momentos" title="Dois encontros, um só motivo" />
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {occasions.map((occasion, i) => (
-              <Reveal key={occasion.id} delayMs={i * 90} className="h-full">
-                <OccasionCard occasion={occasion} />
-              </Reveal>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* ---------- Lista de presentes ---------- */}
-      {listsWithCounts.length > 0 && (
-        <Section tone="canvas-alt" id="lista-de-presentes">
-          <SectionIntro eyebrow="Lista de presentes" title="Escolha uma lista" />
-          <Reveal
-            delayMs={90}
-            className="flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-canvas-line"
-          >
-            {listsWithCounts.map((list, i) => {
-              const href = list.type === 'quota' ? '/casamento' : '/cha-de-cozinha'
-              const Icon = list.type === 'quota' ? Heart : Gift
-              return (
-                <a
-                  key={list.id}
-                  href={href}
-                  className={`group flex min-h-16 items-center gap-4 bg-canvas px-5 py-5 transition-colors duration-[var(--duration-hover)] hover:bg-canvas-alt sm:px-7 ${i > 0 ? 'border-t border-canvas-line' : ''}`}
-                >
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-canvas-alt text-accent-strong transition-transform duration-300 ease-[var(--ease-out)] group-hover:scale-110">
-                    <Icon size={18} strokeWidth={1.6} aria-hidden="true" />
-                  </span>
-                  <span className="flex-1">
-                    <span className="block font-sans text-body-md font-semibold text-ink">
-                      {list.name}
-                    </span>
-                    {list.description && (
-                      <span className="mt-0.5 block text-caption text-ink-soft">
-                        {list.description}
-                      </span>
-                    )}
-                  </span>
-                  {/*
-                    A contagem de itens aparece a partir de sm. No mobile ela
-                    era a primeira coisa a comprimir o nome da lista — e é a
-                    informação menos decisiva da linha.
-                  */}
-                  <span className="hidden shrink-0 text-xs text-ink-soft sm:inline">
-                    {list.count} {list.count === 1 ? 'item' : 'itens'}
-                  </span>
-                  <ArrowRight
-                    size={16}
-                    strokeWidth={1.8}
-                    className="shrink-0 text-accent-strong transition-transform duration-[var(--duration-hover)] ease-[var(--ease-out)] group-hover:translate-x-1"
-                    aria-hidden="true"
-                  />
-                </a>
-              )
-            })}
-          </Reveal>
-        </Section>
-      )}
-
       {/* ---------- Como funciona ---------- */}
-      <Section tone="canvas" rhythm="tight">
-        <SectionIntro eyebrow="Como funciona" title="Quatro passos, sem complicação" />
+      <Section tone="canvas" id="como-funciona">
+        <SectionIntro eyebrow="Como funciona" title="Da ideia ao dia da celebração" />
         <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 sm:gap-8">
-          {STEPS.map((step, i) => (
+          {HOW_IT_WORKS.map((step, i) => (
             <Reveal key={step.n} delayMs={i * 80}>
-              {/* O numeral vira borda inferior de latão: dá um marcador de
-                  passo sem gastar um ícone ou um cartão por item. */}
               <span className="font-display text-display-md italic text-accent-strong">
                 {step.n}.
               </span>
@@ -253,50 +139,129 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      {/* ---------- Footer ---------- */}
-      <footer className="bg-ink-deep py-14 text-center text-on-deep-soft sm:py-16">
-        <p className="font-display text-display-md italic text-on-deep">{event.name}</p>
-        {formattedDate && (
-          <p className="mt-1.5 text-xs tracking-[0.14em]">{formattedDate.join(' · ')}</p>
-        )}
-        <p className="mx-auto mt-5 max-w-[30ch] text-caption">
-          Obrigado por fazer parte desse momento.
-        </p>
-
-        {/* Assinatura da plataforma: o rodapé é onde a marca pode aparecer
-            por extenso sem disputar atenção com o evento. */}
-        <div className="mx-auto mt-10 flex max-w-[280px] flex-col items-center gap-2.5 border-t border-on-deep-soft/25 pt-6">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-on-deep-soft/75">
-            Lista de presentes feita no
-          </span>
-          <Logo tone="light" height={24} className="opacity-90" />
+      {/* ---------- Para quem é ---------- */}
+      <Section tone="canvas-alt">
+        <SectionIntro
+          eyebrow="Para quem é"
+          title="Feita para começar num casamento. Pronta para qualquer celebração."
+        />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+          {AUDIENCES.map(({ label, Icon }, i) => (
+            <Reveal key={label} delayMs={i * 60} className="h-full">
+              <Card className="flex h-full flex-col items-center gap-3 py-7 text-center">
+                <Icon size={22} strokeWidth={1.6} className="text-accent-strong" aria-hidden="true" />
+                <span className="font-sans text-sm font-semibold text-ink">{label}</span>
+              </Card>
+            </Reveal>
+          ))}
         </div>
+      </Section>
 
-        {SOCIAL_LINKS.some(({ key }) => event[key]) && (
-          <div className="mt-6 flex items-center justify-center gap-2">
-            {SOCIAL_LINKS.map(({ key, label, Icon }) => {
-              const url = event[key]
-              if (!url) return null
-              return (
-                // h-11 w-11 (44px) em vez de h-9 w-9: são os alvos de toque
-                // mais apertados da página pública. O círculo visível continua
-                // menor — cresce a área, não o desenho.
-                <a
-                  key={key}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="flex h-11 w-11 items-center justify-center rounded-full text-on-deep-soft transition-colors duration-[var(--duration-hover)] hover:text-accent"
-                >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full border border-on-deep-soft/30 transition-colors duration-[var(--duration-hover)] hover:border-accent">
-                    <Icon size={16} strokeWidth={1.6} />
-                  </span>
-                </a>
-              )
-            })}
-          </div>
-        )}
+      {/* ---------- Recursos ---------- */}
+      <Section tone="canvas">
+        <SectionIntro eyebrow="Recursos" title="Tudo o que um evento precisa, num lugar só" />
+        <Reveal>
+          <ul className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+            {FEATURES.map((feature) => (
+              <li key={feature} className="flex items-start gap-3">
+                <span
+                  className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent-strong"
+                  aria-hidden="true"
+                />
+                <span className="text-body-md text-ink">{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+      </Section>
+
+      {/* ---------- Experiência do convidado ---------- */}
+      <Section tone="canvas-alt">
+        <div className="grid grid-cols-1 items-center gap-10 sm:grid-cols-2 sm:gap-16">
+          <Reveal>
+            <div className="flex max-w-[38ch] flex-col gap-4">
+              <Eyebrow>Experiência do convidado</Eyebrow>
+              <Heading as="h2">Ser convidado também devia ser simples.</Heading>
+              <p className="text-body-md text-ink-soft">
+                Um link, direto no celular. Sem senha, sem criar conta. O convidado vê a data, o
+                local, confirma presença e — se quiser — escolhe um presente. Em menos de um
+                minuto.
+              </p>
+            </div>
+          </Reveal>
+          <Reveal delayMs={90}>
+            <div className="rounded-[var(--radius-lg)] border border-canvas-line bg-canvas p-6 shadow-raise">
+              <p className="text-caption text-ink-soft">O convidado recebe um link pessoal e:</p>
+              <ul className="mt-4 flex flex-col gap-3">
+                {['Vê as informações do evento', 'Confirma presença', 'Escolhe um presente'].map(
+                  (item) => (
+                    <li key={item} className="flex items-center gap-3 border-t border-canvas-line pt-3 first:border-t-0 first:pt-0">
+                      <ArrowRight size={14} strokeWidth={1.8} className="shrink-0 text-accent-strong" aria-hidden="true" />
+                      <span className="text-sm text-ink">{item}</span>
+                    </li>
+                  )
+                )}
+              </ul>
+            </div>
+          </Reveal>
+        </div>
+      </Section>
+
+      {/* ---------- Experiência do organizador ---------- */}
+      <Section tone="ink-deep">
+        <div className="grid grid-cols-1 items-center gap-10 sm:grid-cols-2 sm:gap-16">
+          <Reveal delayMs={90} className="order-2 sm:order-1">
+            <div className="rounded-[var(--radius-lg)] border border-on-deep-soft/20 bg-ink-deep-2 p-6">
+              <p className="text-caption text-on-deep-soft">Em um painel só, você acompanha:</p>
+              <ul className="mt-4 flex flex-col gap-3">
+                {['Convidados', 'Confirmações', 'Presentes', 'Reservas', 'Informações do evento'].map(
+                  (item) => (
+                    <li key={item} className="flex items-center gap-3 border-t border-on-deep-soft/15 pt-3 first:border-t-0 first:pt-0">
+                      <ArrowRight size={14} strokeWidth={1.8} className="shrink-0 text-accent" aria-hidden="true" />
+                      <span className="text-sm text-on-deep">{item}</span>
+                    </li>
+                  )
+                )}
+              </ul>
+            </div>
+          </Reveal>
+          <Reveal className="order-1 sm:order-2">
+            <div className="flex max-w-[38ch] flex-col gap-4">
+              <Eyebrow className="text-accent">Experiência do organizador</Eyebrow>
+              <Heading as="h2" className="text-on-deep">
+                Tudo sobre o seu evento, sem planilha paralela.
+              </Heading>
+              <p className="text-body-md text-on-deep-soft">
+                Convidados, confirmações, presentes e reservas — tudo em tempo real, num painel
+                só. Sem perguntar &ldquo;quem confirmou mesmo?&rdquo; pela quinta vez na semana.
+              </p>
+            </div>
+          </Reveal>
+        </div>
+      </Section>
+
+      {/* ---------- CTA final ---------- */}
+      <Section tone="ink-deep" id="comecar" className="border-t border-on-deep-soft/15">
+        <div className="flex flex-col items-center gap-6 text-center">
+          <Heading as="h2" size="xl" className="max-w-[24ch] text-on-deep">
+            Seu evento merece uma experiência à altura.
+          </Heading>
+          <a
+            href="mailto:ola@listaae.com.br"
+            className={buttonVariants({ variant: 'accent', className: 'mt-2' })}
+          >
+            Começar com a Listaae
+            <ArrowRight size={16} strokeWidth={1.8} aria-hidden="true" />
+          </a>
+        </div>
+      </Section>
+
+      {/* ---------- Footer ---------- */}
+      <footer className="bg-ink-deep py-10 text-center text-on-deep-soft sm:py-12">
+        <Logo tone="light" height={22} className="mx-auto opacity-85" />
+        <p className="mx-auto mt-5 max-w-[36ch] text-caption">
+          Listaae — do convite à celebração, em um lugar só.
+        </p>
       </footer>
     </>
   )

@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import {
   ArrowRight,
   Heart,
@@ -17,6 +16,7 @@ import { Logo } from '@/components/ui/Logo'
 import { Reveal } from '@/components/ui/Reveal'
 import { InstagramIcon } from '@/components/ui/SocialIcons'
 import { ContactForm } from '@/components/public/ContactForm'
+import { LandingHeader } from '@/components/public/LandingHeader'
 
 /**
  * Home institucional da Listaae (o produto) — não depende de nenhum evento.
@@ -123,23 +123,6 @@ function SectionIntro({
         </Heading>
       </div>
     </Reveal>
-  )
-}
-
-// Sem "voltar" aqui — esta é a raiz do site, não uma tela dentro de um
-// fluxo de evento. Header próprio, simples: marca + "Entrar" (login do
-// admin, já existe e continua funcionando exatamente como hoje).
-function LandingHeader() {
-  return (
-    <header className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-canvas-line bg-canvas/85 px-5 py-3 backdrop-blur-md sm:px-8">
-      <Logo height={26} priority />
-      <Link
-        href="/admin/login"
-        className="flex min-h-11 items-center px-2 text-sm font-medium text-ink-soft transition-colors hover:text-accent-text"
-      >
-        Entrar
-      </Link>
-    </header>
   )
 }
 

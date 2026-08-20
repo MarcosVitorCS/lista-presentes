@@ -227,6 +227,21 @@ body::before {
   animation: fade-in-up var(--duration-enter) var(--ease-out) both;
 }
 
+/* Painel lateral (Drawer) entrando pela direita — components/ui/Drawer.tsx. */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slide-in-right {
+  animation: slide-in-right var(--duration-enter) var(--ease-out) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

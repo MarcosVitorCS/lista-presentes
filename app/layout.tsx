@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Instrument_Sans } from "next/font/google";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -17,9 +18,35 @@ const instrumentSans = Instrument_Sans({
   display: "swap",
 });
 
+// Metadata padrão do site inteiro (produto Listaae) — páginas de evento
+// específicas (ex.: app/(public)/evento/[slug]/page.tsx) sobrescrevem via
+// generateMetadata próprio; o resto (casamento, chá de cozinha,
+// identificação, confirmar) herda isso daqui, o que é só cosmético (título
+// da aba do navegador) e não muda nenhum comportamento dessas páginas.
 export const metadata: Metadata = {
-  title: "Rafaely & Vitor",
-  description: "Lista de presentes — Chá de Cozinha e Casamento, 26 de dezembro de 2026",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Listaae — Do convite à celebração",
+    template: "%s · Listaae",
+  },
+  description:
+    "Crie uma experiência completa para o seu evento. Convites, convidados, confirmação de presença, lista de presentes e muito mais em um só lugar.",
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "Listaae",
+    title: "Listaae — Do convite à celebração",
+    description:
+      "Crie uma experiência completa para o seu evento. Convites, convidados, confirmação de presença, lista de presentes e muito mais em um só lugar.",
+    images: [{ url: "/brand/listaae-logo.png", width: 1299, height: 372, alt: "Listaae" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Listaae — Do convite à celebração",
+    description:
+      "Crie uma experiência completa para o seu evento. Convites, convidados, confirmação de presença, lista de presentes e muito mais em um só lugar.",
+    images: ["/brand/listaae-logo.png"],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

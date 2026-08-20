@@ -5,13 +5,22 @@ import { X } from "lucide-react";
 import { cx } from "./utils";
 
 /**
- * Painel lateral (slide-over) — mesma técnica de <dialog> nativo do
- * Dialog.tsx (foco preso, Esc fecha, backdrop de graça), só que ancorado na
- * borda direita da tela em vez de centralizado, e ocupando a largura toda
- * no mobile (onde "menos da metade da tela" não sobra espaço nenhum pra um
- * formulário). Mesmo cuidado do Dialog: p-0 no <dialog>, padding só no div
- * interno — senão o clique na própria margem do dialog conta como clique
- * no backdrop e fecha sozinho.
+ * Painel lateral (slide-over) — mesma base de <dialog> nativo do Dialog.tsx
+ * (foco preso, Esc fecha, semântica de modal de graça), ancorado na borda
+ * direita em vez de centralizado, ocupando a largura toda no mobile.
+ *
+ * Animação de entrada E saída via @starting-style + transition-behavior:
+ * allow-discrete (classe .drawer-panel, definida em globals.css) — é a
+ * técnica atual pra animar abertura/fechamento de <dialog> nativo só com
+ * CSS. dialog.close() some com o atributo [open] na hora, mas
+ * allow-discrete nas propriedades discretas (display/overlay) segura a
+ * remoção do dialog até a transição de saída terminar — sem isso, fechar
+ * cortaria a animação no meio. Navegador sem suporte (raro) só perde a
+ * animação: abre/fecha instantâneo, nunca quebrado.
+ *
+ * Mesmo cuidado do Dialog: p-0 no <dialog>, padding só no div interno —
+ * senão o clique na própria margem do dialog conta como clique no backdrop
+ * e fecha sozinho.
  */
 export function Drawer({
   open,
@@ -48,11 +57,20 @@ export function Drawer({
         // max-w-none/max-h-none: o <dialog> nativo vem com max-width/max-height
         // padrão do navegador (pra nunca estourar a viewport quando
         // centralizado) — sem isso, w-full/h-dvh não conseguem valer 100%.
-        "m-0 ml-auto h-dvh max-h-none w-full max-w-none border-l border-canvas-line bg-canvas p-0 text-ink shadow-overlay backdrop:bg-ink-deep/60 backdrop:backdrop-blur-[2px] open:animate-slide-in-right sm:w-[min(92vw,420px)] sm:rounded-l-[var(--radius-lg)]",
+        "drawer-panel group m-0 ml-auto h-dvh max-h-none w-full max-w-none border-l border-canvas-line bg-canvas p-0 text-ink shadow-overlay sm:w-[min(92vw,420px)] sm:rounded-l-[var(--radius-lg)]",
         className
       )}
     >
-      <div className="relative flex h-full flex-col overflow-y-auto p-6 sm:p-8">
+      {/* Conteúdo aparece um instante depois do painel começar a deslizar
+          (delay curto) — a sensação de profundidade que separa "painel
+          entrando" de "conteúdo dentro dele acomodando". drawer-content
+          (globals.css) em vez de group-open:animate-fade-in-up: essa
+          segunda forma não funciona porque animate-fade-in-up é uma classe
+          escrita à mão, não um utilitário que o Tailwind reconhece — ele só
+          sabe prefixar variante em utilitário próprio, então a combinação
+          fica no HTML sem gerar CSS nenhum (confirmado: animationName
+          computado ficava "none"). */}
+      <div className="drawer-content relative flex h-full flex-col overflow-y-auto p-6 sm:p-8">
         <button
           type="button"
           onClick={onClose}

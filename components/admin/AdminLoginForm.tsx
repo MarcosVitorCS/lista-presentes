@@ -19,7 +19,16 @@ export function AdminLoginForm({ headingId }: { headingId?: string }) {
 
   return (
     <div className="flex flex-col gap-7">
-      <div className="flex flex-col gap-4">
+      {/* items-start é o que importa aqui: sem alinhamento explícito, o
+          align-items:stretch padrão de flex-col força a largura do <img>
+          do Logo a ocupar o container inteiro, ignorando o width:auto que
+          preserva a proporção — foi isso que distorcia a marca no drawer
+          (confirmado via inspeção real: computed width 355px vs. os ~105px
+          que a proporção do arquivo pede pra height=30). Nos outros lugares
+          onde o Logo aparece (header, footer, PublicHeader) o container é
+          flex em linha (items-center), onde esse stretch nunca acontece na
+          largura — por isso o bug só existia aqui. */}
+      <div className="flex flex-col items-start gap-4">
         <Logo height={30} priority />
         <h1 id={headingId} className="font-display text-display-md text-ink">
           Área administrativa

@@ -7,6 +7,7 @@ import {
   GraduationCap,
   Briefcase,
   Sparkles,
+  Mail,
 } from 'lucide-react'
 import { Section } from '@/components/ui/Section'
 import { Heading, Eyebrow } from '@/components/ui/Heading'
@@ -14,6 +15,8 @@ import { buttonVariants } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Logo } from '@/components/ui/Logo'
 import { Reveal } from '@/components/ui/Reveal'
+import { InstagramIcon } from '@/components/ui/SocialIcons'
+import { ContactForm } from '@/components/public/ContactForm'
 
 /**
  * Home institucional da Listaae (o produto) — não depende de nenhum evento.
@@ -50,6 +53,51 @@ const FEATURES = [
   'Informações de data e localização',
   'Múltiplas ocasiões dentro de um evento',
   'Experiência otimizada para celular',
+]
+
+// Só perguntas sobre o que o produto já faz — nada de recurso futuro
+// apresentado como se já existisse.
+const FAQS = [
+  {
+    q: 'O que é a Listaae?',
+    a: 'Uma plataforma para criar a experiência digital completa do seu evento: informações, convidados, confirmação de presença e lista de presentes, tudo em um lugar só.',
+  },
+  {
+    q: 'Para quais tipos de eventos posso usar?',
+    a: 'Casamentos, chás de cozinha, aniversários, formaturas, eventos corporativos e outras celebrações — a plataforma não é exclusiva de casamento.',
+  },
+  {
+    q: 'Preciso instalar algum aplicativo?',
+    a: 'Não. Tanto quem organiza quanto quem é convidado usam a Listaae direto do navegador, no celular ou no computador.',
+  },
+  {
+    q: 'Meus convidados precisam criar uma conta?',
+    a: 'Não. Cada convidado só informa nome e contato — sem senha, sem cadastro — para confirmar presença ou ver a lista de presentes.',
+  },
+  {
+    q: 'Posso usar lista de presentes e confirmação de presença juntas?',
+    a: 'Sim. Seu evento pode ter as duas ativadas, só uma delas, ou nenhuma — você decide o que faz sentido.',
+  },
+  {
+    q: 'Posso personalizar meu evento?',
+    a: 'Sim: nome, data, local, foto e descrição são seus. Você também pode organizar mais de um momento dentro do mesmo evento, como um chá de cozinha antes do casamento.',
+  },
+  {
+    q: 'A Listaae funciona pelo celular?',
+    a: 'Sim — a experiência foi pensada primeiro para celular, tanto para quem organiza quanto para quem é convidado.',
+  },
+  {
+    q: 'Como funciona a confirmação de presença?',
+    a: 'Cada pessoa autorizada por quem organiza recebe um link individual para confirmar presença — não é "quantos vêm", é "quem vem", nominalmente.',
+  },
+  {
+    q: 'Como funciona a lista de presentes?',
+    a: 'Convidados escolhem e reservam presentes com controle real de estoque (sem duas pessoas levando o mesmo item) ou contribuem com cotas via PIX.',
+  },
+  {
+    q: 'Como faço para começar?',
+    a: 'Preencha o formulário abaixo ou escreva para listaae.eventos@gmail.com — entramos em contato para configurar o seu evento.',
+  },
 ]
 
 /**
@@ -139,26 +187,8 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* ---------- Para quem é ---------- */}
-      <Section tone="canvas-alt">
-        <SectionIntro
-          eyebrow="Para quem é"
-          title="Feita para começar num casamento. Pronta para qualquer celebração."
-        />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-          {AUDIENCES.map(({ label, Icon }, i) => (
-            <Reveal key={label} delayMs={i * 60} className="h-full">
-              <Card className="flex h-full flex-col items-center gap-3 py-7 text-center">
-                <Icon size={22} strokeWidth={1.6} className="text-accent-strong" aria-hidden="true" />
-                <span className="font-sans text-sm font-semibold text-ink">{label}</span>
-              </Card>
-            </Reveal>
-          ))}
-        </div>
-      </Section>
-
       {/* ---------- Recursos ---------- */}
-      <Section tone="canvas">
+      <Section tone="canvas-alt" id="recursos">
         <SectionIntro eyebrow="Recursos" title="Tudo o que um evento precisa, num lugar só" />
         <Reveal>
           <ul className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
@@ -176,7 +206,7 @@ export default function HomePage() {
       </Section>
 
       {/* ---------- Experiência do convidado ---------- */}
-      <Section tone="canvas-alt">
+      <Section tone="canvas">
         <div className="grid grid-cols-1 items-center gap-10 sm:grid-cols-2 sm:gap-16">
           <Reveal>
             <div className="flex max-w-[38ch] flex-col gap-4">
@@ -190,7 +220,7 @@ export default function HomePage() {
             </div>
           </Reveal>
           <Reveal delayMs={90}>
-            <div className="rounded-[var(--radius-lg)] border border-canvas-line bg-canvas p-6 shadow-raise">
+            <div className="rounded-[var(--radius-lg)] border border-canvas-line bg-canvas-alt p-6 shadow-raise">
               <p className="text-caption text-ink-soft">O convidado recebe um link pessoal e:</p>
               <ul className="mt-4 flex flex-col gap-3">
                 {['Vê as informações do evento', 'Confirma presença', 'Escolhe um presente'].map(
@@ -240,28 +270,132 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* ---------- CTA final ---------- */}
+      {/* ---------- Para quem é ---------- */}
+      <Section tone="canvas">
+        <SectionIntro
+          eyebrow="Para quem é"
+          title="Feita para começar num casamento. Pronta para qualquer celebração."
+        />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+          {AUDIENCES.map(({ label, Icon }, i) => (
+            <Reveal key={label} delayMs={i * 60} className="h-full">
+              <Card className="flex h-full flex-col items-center gap-3 py-7 text-center">
+                <Icon size={22} strokeWidth={1.6} className="text-accent-strong" aria-hidden="true" />
+                <span className="font-sans text-sm font-semibold text-ink">{label}</span>
+              </Card>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      {/* ---------- FAQ ---------- */}
+      <Section tone="canvas-alt" id="faq">
+        <SectionIntro eyebrow="Perguntas frequentes" title="Tudo o que você precisa saber antes de começar" />
+        <Reveal>
+          <div className="mx-auto flex max-w-[68ch] flex-col">
+            {FAQS.map((faq) => (
+              <details
+                key={faq.q}
+                className="group border-b border-canvas-line py-4 first:pt-0 last:border-b-0"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
+                  <span className="font-sans text-sm font-semibold text-ink sm:text-body-md">
+                    {faq.q}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="shrink-0 text-ink-soft transition-transform duration-[var(--duration-hover)] group-open:rotate-180"
+                  >
+                    ▾
+                  </span>
+                </summary>
+                <p className="mt-3 text-body-md text-ink-soft">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+        </Reveal>
+      </Section>
+
+      {/* ---------- CTA final: formulário de interesse comercial ---------- */}
       <Section tone="ink-deep" id="comecar" className="border-t border-on-deep-soft/15">
-        <div className="flex flex-col items-center gap-6 text-center">
-          <Heading as="h2" size="xl" className="max-w-[24ch] text-on-deep">
-            Seu evento merece uma experiência à altura.
-          </Heading>
-          <a
-            href="mailto:ola@listaae.com.br"
-            className={buttonVariants({ variant: 'accent', className: 'mt-2' })}
-          >
-            Começar com a Listaae
-            <ArrowRight size={16} strokeWidth={1.8} aria-hidden="true" />
-          </a>
+        <div className="mx-auto flex max-w-xl flex-col items-center gap-8">
+          <Reveal>
+            <div className="flex flex-col items-center gap-3 text-center">
+              <Eyebrow className="text-accent">Vamos conversar</Eyebrow>
+              <Heading as="h2" size="xl" className="max-w-[20ch] text-on-deep">
+                Vamos criar seu evento?
+              </Heading>
+              <p className="max-w-[46ch] text-body-md text-on-deep-soft">
+                Conta pra gente um pouco sobre o seu evento — a gente entra em contato pra
+                mostrar como a Listaae pode ajudar.
+              </p>
+            </div>
+          </Reveal>
+          <Reveal delayMs={90} className="w-full">
+            <div className="w-full rounded-[var(--radius-lg)] border border-on-deep-soft/15 bg-canvas p-6 shadow-overlay sm:p-8">
+              <ContactForm />
+            </div>
+          </Reveal>
         </div>
       </Section>
 
       {/* ---------- Footer ---------- */}
-      <footer className="bg-ink-deep py-10 text-center text-on-deep-soft sm:py-12">
-        <Logo tone="light" height={22} className="mx-auto opacity-85" />
-        <p className="mx-auto mt-5 max-w-[36ch] text-caption">
-          Listaae — do convite à celebração, em um lugar só.
-        </p>
+      <footer className="bg-ink-deep py-12 text-on-deep-soft sm:py-14">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-5 text-center sm:px-8">
+          <Logo tone="light" height={22} className="opacity-85" />
+          <p className="max-w-[36ch] text-caption">
+            Listaae — do convite à celebração, em um lugar só.
+          </p>
+
+          {/* Ícones de contato — mesmo tratamento visual do rodapé de
+              EventHome.tsx (alvo de toque 44px, círculo visível 36px),
+              replicado aqui de propósito em vez de importado: contextos
+              diferentes (institucional vs. evento), sem acoplar os dois. */}
+          <div className="flex items-center gap-2">
+            <a
+              href="https://www.instagram.com/listaae"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram da Listaae"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-on-deep-soft transition-colors duration-[var(--duration-hover)] hover:text-accent"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-on-deep-soft/30 transition-colors duration-[var(--duration-hover)] hover:border-accent">
+                <InstagramIcon size={16} strokeWidth={1.6} />
+              </span>
+            </a>
+            <a
+              href="mailto:listaae.eventos@gmail.com"
+              aria-label="E-mail da Listaae"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-on-deep-soft transition-colors duration-[var(--duration-hover)] hover:text-accent"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-on-deep-soft/30 transition-colors duration-[var(--duration-hover)] hover:border-accent">
+                <Mail size={16} strokeWidth={1.6} aria-hidden="true" />
+              </span>
+            </a>
+          </div>
+
+          <nav
+            aria-label="Navegação do rodapé"
+            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-caption"
+          >
+            <a href="#como-funciona" className="transition-colors hover:text-on-deep">
+              Como funciona
+            </a>
+            <a href="#recursos" className="transition-colors hover:text-on-deep">
+              Recursos
+            </a>
+            <a href="#faq" className="transition-colors hover:text-on-deep">
+              Perguntas frequentes
+            </a>
+            <a href="#comecar" className="transition-colors hover:text-on-deep">
+              Contato
+            </a>
+          </nav>
+
+          <p className="text-[10px] uppercase tracking-[0.14em] text-on-deep-soft/70">
+            © {new Date().getFullYear()} Listaae. Todos os direitos reservados.
+          </p>
+        </div>
       </footer>
     </>
   )

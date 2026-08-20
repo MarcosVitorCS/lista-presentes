@@ -1,63 +1,12 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { getGuestSession } from '@/lib/dal/guest-session'
+import { permanentRedirect } from 'next/navigation'
 import { DEFAULT_EVENT_SLUG } from '@/lib/constants'
-import { QuotaItemCard } from '@/components/public/QuotaItemCard'
-import { GiftCatalog } from '@/components/public/GiftCatalog'
-import { PublicHeader } from '@/components/public/PublicHeader'
-import { EmptyState } from '@/components/public/EmptyState'
-import { PageHeader } from '@/components/ui/PageHeader'
 
-export default async function CasamentoPage() {
-  const guestSession = await getGuestSession()
-  if (!guestSession) {
-    redirect('/identificacao?next=/casamento')
-  }
-
-  const supabase = await createClient()
-
-  const { data: event } = await supabase
-    .from('events')
-    .select('id, name, pix_key, pix_owner_name, pix_qr_code_url')
-    .eq('slug', DEFAULT_EVENT_SLUG)
-    .maybeSingle()
-
-  if (!event) {
-    redirect('/')
-  }
-
-  const { data: list } = await supabase
-    .from('gift_lists')
-    .select('id, name, description')
-    .eq('event_id', event.id)
-    .eq('type', 'quota')
-    .eq('is_active', true)
-    .maybeSingle()
-
-  const { data: items } = list
-    ? await supabase.from('gift_items_public').select('*').eq('list_id', list.id).order('name')
-    : { data: null }
-
-  return (
-    <>
-      <PublicHeader />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-5 py-[var(--spacing-section)] sm:px-8">
-        <PageHeader eyebrow={event.name} title="Casamento" description={list?.description ?? undefined} />
-        <p className="text-caption text-ink-soft">
-          Presenteie com uma ou mais cotas via PIX — a plataforma não processa pagamento, apenas
-          registra sua contribuição.
-        </p>
-
-        {!items?.length ? (
-          <EmptyState message="A lista está sendo preparada com carinho. Volte em breve. ❤" />
-        ) : (
-          <GiftCatalog
-            items={items}
-            pix={{ key: event.pix_key, ownerName: event.pix_owner_name, qrCodeUrl: event.pix_qr_code_url }}
-            ItemCard={QuotaItemCard}
-          />
-        )}
-      </main>
-    </>
-  )
+// Rota antiga, fixa e não-multi-tenant — mantida só como redirect pra não
+// quebrar link/convite já enviado. A rota de verdade agora é
+// /evento/[slug]/[list] (app/(public)/evento/[slug]/[list]/page.tsx), que
+// resolve a lista por slug real em vez de assumir "a lista de casamento é
+// sempre a do evento padrão". 308 (permanente) porque o endereço mudou de
+// vez, não é um redirect condicional.
+export default function CasamentoRedirectPage() {
+  permanentRedirect(`/evento/${DEFAULT_EVENT_SLUG}/casamento`)
 }

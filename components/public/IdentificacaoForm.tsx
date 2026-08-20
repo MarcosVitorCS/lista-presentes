@@ -13,8 +13,9 @@ function detectContactType(value: string): 'whatsapp' | 'email' {
 
 export function IdentificacaoForm() {
   const searchParams = useSearchParams()
-  // Hoje todo call site já passa ?next=/casamento ou ?next=/cha-de-cozinha
-  // explicitamente, então esse fallback nunca dispara na prática — mas se
+  // Hoje todo call site já passa ?next=/evento/[slug]/[list] explicitamente
+  // (ver app/(public)/evento/[slug]/[list]/page.tsx), então esse fallback
+  // nunca dispara na prática — mas se
   // algum dia /identificacao for aberta sem `next` (link direto, bookmark),
   // deve voltar pro evento, não pra landing institucional da Listaae.
   const next = searchParams.get('next') ?? `/evento/${DEFAULT_EVENT_SLUG}`

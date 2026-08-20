@@ -92,8 +92,10 @@ export async function updateEventSettings(
   }
 
   revalidatePath('/admin/dashboard', 'layout')
-  revalidatePath('/')
-  revalidatePath('/cha-de-cozinha')
-  revalidatePath('/casamento')
+  // '/' não precisa mais (é a landing institucional da Listaae, não
+  // depende de nenhum evento) — a home do evento é /evento/[slug], que
+  // ficou sem revalidação nenhuma desde essa separação. Corrigido aqui.
+  revalidatePath('/evento/[slug]', 'page')
+  revalidatePath('/evento/[slug]/[list]', 'page')
   return { success: true }
 }

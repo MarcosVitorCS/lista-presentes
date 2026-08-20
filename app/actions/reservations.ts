@@ -69,8 +69,10 @@ export async function createReservation(
     return { error: friendlyError(error.message) }
   }
 
-  revalidatePath('/cha-de-cozinha')
-  revalidatePath('/casamento')
+  // 'page' com o padrão de rota dinâmica revalida a lista deste item
+  // (qualquer evento, qualquer lista) sem precisar resolver qual slug
+  // específico corresponde a itemId aqui.
+  revalidatePath('/evento/[slug]/[list]', 'page')
   return { success: true }
 }
 

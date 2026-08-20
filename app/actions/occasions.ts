@@ -74,7 +74,10 @@ export async function createOccasion(
   }
 
   revalidatePath('/admin/dashboard/configuracoes')
-  revalidatePath('/')
+  // '/' não precisa mais (é a landing institucional, não mostra ocasiões) —
+  // as ocasiões aparecem em /evento/[slug], que ficou sem revalidação
+  // nenhuma desde essa separação. Corrigido aqui.
+  revalidatePath('/evento/[slug]', 'page')
   return { success: true }
 }
 
@@ -146,6 +149,9 @@ export async function updateOccasion(
   }
 
   revalidatePath('/admin/dashboard/configuracoes')
-  revalidatePath('/')
+  // '/' não precisa mais (é a landing institucional, não mostra ocasiões) —
+  // as ocasiões aparecem em /evento/[slug], que ficou sem revalidação
+  // nenhuma desde essa separação. Corrigido aqui.
+  revalidatePath('/evento/[slug]', 'page')
   return { success: true }
 }

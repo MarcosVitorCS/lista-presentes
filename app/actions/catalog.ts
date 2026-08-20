@@ -95,8 +95,10 @@ export async function createGiftItem(
   }
 
   revalidatePath('/admin/dashboard', 'layout')
-  revalidatePath('/cha-de-cozinha')
-  revalidatePath('/casamento')
+  // 'page' com o padrão de rota dinâmica revalida todas as instâncias
+  // (qualquer evento, qualquer lista) numa chamada só — não precisa saber
+  // qual slug específico foi afetado.
+  revalidatePath('/evento/[slug]/[list]', 'page')
   return { success: true }
 }
 
@@ -158,7 +160,9 @@ export async function updateGiftItem(
   }
 
   revalidatePath('/admin/dashboard', 'layout')
-  revalidatePath('/cha-de-cozinha')
-  revalidatePath('/casamento')
+  // 'page' com o padrão de rota dinâmica revalida todas as instâncias
+  // (qualquer evento, qualquer lista) numa chamada só — não precisa saber
+  // qual slug específico foi afetado.
+  revalidatePath('/evento/[slug]/[list]', 'page')
   return { success: true }
 }

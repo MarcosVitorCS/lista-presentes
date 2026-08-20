@@ -199,7 +199,11 @@ export async function EventHome({ slug }: { slug: string }) {
             className="flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-canvas-line"
           >
             {listsWithCounts.map((list, i) => {
-              const href = list.type === 'quota' ? '/casamento' : '/cha-de-cozinha'
+              // /evento/[slug]/[list-slug]: preserva o contexto do evento na
+              // URL, o que é o que torna isso seguro pra múltiplos eventos
+              // (duas listas "cha-de-cozinha" de eventos diferentes não
+              // colidem — ver app/(public)/evento/[slug]/[list]/page.tsx).
+              const href = `/evento/${slug}/${list.slug}`
               const Icon = list.type === 'quota' ? Heart : Gift
               return (
                 <a

@@ -6,6 +6,7 @@ import { OccasionRsvpSelect } from '@/components/admin/OccasionRsvpSelect'
 import { Card } from '@/components/ui/Card'
 import { Label } from '@/components/ui/Input'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { Stat } from '@/components/ui/Stat'
 import type { RsvpStatus } from '@/types/database'
 
 export default async function AdminConfirmacoesPage(props: PageProps<'/admin/dashboard/confirmacoes'>) {
@@ -118,11 +119,11 @@ export default async function AdminConfirmacoesPage(props: PageProps<'/admin/das
 
       <Card elevation="raise" className="flex flex-col gap-5">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <Stat label="Convidados responsáveis" value={rows.length} />
-          <Stat label="Confirmados" value={confirmed.length} tone="success" />
-          <Stat label="Pendentes" value={pending.length} tone="warning" />
-          <Stat label="Recusados" value={declined.length} />
-          <Stat label="Pessoas confirmadas" value={peopleConfirmed} tone="success" />
+          <Stat label="Convidados responsáveis" value={rows.length} size="md" />
+          <Stat label="Confirmados" value={confirmed.length} tone="success" size="md" />
+          <Stat label="Pendentes" value={pending.length} tone="warning" size="md" />
+          <Stat label="Recusados" value={declined.length} size="md" />
+          <Stat label="Pessoas confirmadas" value={peopleConfirmed} tone="success" size="md" />
         </div>
         <p className="border-t border-canvas-line pt-4 text-caption text-ink-soft">
           <span className="tabular-nums">{peopleInvited}</span>{' '}
@@ -131,27 +132,6 @@ export default async function AdminConfirmacoesPage(props: PageProps<'/admin/das
       </Card>
 
       <InvitationsManager occasionId={selectedOccasionId} rows={rows} />
-    </div>
-  )
-}
-
-/**
- * Stat local, não o do kit: são cinco colunas em 390px (o kit não quebra o
- * rótulo nem reduz o tamanho no mobile). Mesma decisão do dashboard.
- */
-function Stat({ label, value, tone }: { label: string; value: number; tone?: 'success' | 'warning' }) {
-  return (
-    <div className="min-w-0">
-      <p
-        className={`font-display text-2xl tabular-nums ${
-          tone === 'success' ? 'text-success' : tone === 'warning' ? 'text-warning' : 'text-ink'
-        }`}
-      >
-        {value}
-      </p>
-      <p className="mt-0.5 break-words text-[10px] uppercase leading-snug tracking-[0.03em] text-ink-soft sm:text-xs sm:tracking-[0.08em]">
-        {label}
-      </p>
     </div>
   )
 }

@@ -2,24 +2,26 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { getAdminEvent } from '@/lib/dal/admin-session'
 import { createClient } from '@/lib/supabase/server'
-import { Eyebrow } from '@/components/ui/Heading'
-import { Card } from '@/components/ui/Card'
-import { Progress } from '@/components/ui/Progress'
+import { getGiftStats, getFinancialStats, getRsvpStats, getEventTiming } from '@/lib/dal/dashboard-stats'
+import { DashboardSummary } from '@/components/admin/DashboardSummary'
+import { DashboardQuickActions } from '@/components/admin/DashboardQuickActions'
+import { DashboardDetails } from '@/components/admin/DashboardDetails'
 
 export default async function DashboardPage() {
   const event = await getAdminEvent()
   const supabase = await createClient()
 
-  const [{ data: items }, { count: pendingCount }, { count: confirmedCount }] = await Promise.all([
-    supabase.from('gift_items').select('quantity_total, quantity_reserved').eq('event_id', event.id),
-    supabase.from('reservations').select('*', { count: 'exact', head: true }).eq('event_id', event.id).eq('status', 'pending'),
-    supabase.from('reservations').select('*', { count: 'exact', head: true }).eq('event_id', event.id).eq('status', 'confirmed'),
+  // As 4 funções paralelizam suas próprias queries internamente — chamá-las
+  // aqui dentro de um único Promise.all evita reintroduzir o waterfall que
+  // esta página já evitava antes desta rodada (ver lib/dal/dashboard-stats.ts).
+  const [gift, financial, rsvp, timing] = await Promise.all([
+    getGiftStats(supabase, event.id),
+    getFinancialStats(supabase, event.id),
+    getRsvpStats(supabase, event.id),
+    getEventTiming(supabase, event),
   ])
 
-  const totalUnits = (items ?? []).reduce((sum, item) => sum + item.quantity_total, 0)
-  const reservedUnits = (items ?? []).reduce((sum, item) => sum + item.quantity_reserved, 0)
-  const availableUnits = totalUnits - reservedUnits
-  const reservedPct = totalUnits > 0 ? Math.round((reservedUnits / totalUnits) * 100) : 0
+  const pendingPixCount = financial?.pendingCount ?? 0
 
   const sections = [
     {
@@ -43,10 +45,10 @@ export default async function DashboardPage() {
     {
       href: '/admin/dashboard/reservas',
       title: 'Reservas',
-      description: pendingCount
-        ? `${pendingCount} PIX aguardando confirmação`
+      description: pendingPixCount
+        ? `${pendingPixCount} PIX aguardando confirmação`
         : 'Confirmar e cancelar reservas.',
-      highlight: Boolean(pendingCount),
+      highlight: Boolean(pendingPixCount),
     },
     {
       href: '/admin/dashboard/configuracoes',
@@ -61,25 +63,20 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-10">
       {/* Visível só pra leitor de tela: mantém a hierarquia h1 (layout) > h2
-          sem duplicar visualmente o que "Visão geral" já comunica. */}
+          sem duplicar visualmente o que o resumo abaixo já comunica. */}
       <h2 className="sr-only">Painel</h2>
-      <div className="flex flex-col gap-4">
-        <Eyebrow>Visão geral</Eyebrow>
-        <Card elevation="raise" className="flex flex-col gap-5">
-          <div className="flex items-baseline justify-between">
-            <span className="text-caption text-ink-soft">Presentes reservados</span>
-            <span className="font-display text-display-md leading-none text-ink-deep">
-              {reservedPct}%
-            </span>
-          </div>
-          <Progress value={reservedPct} label="Presentes reservados" />
-          <div className="grid grid-cols-3 gap-3 border-t border-canvas-line pt-5 sm:gap-4">
-            <Stat label="Confirmados" value={confirmedCount ?? 0} />
-            <Stat label="PIX pendente" value={pendingCount ?? 0} warn={Boolean(pendingCount)} />
-            <Stat label="Disponíveis" value={availableUnits} />
-          </div>
-        </Card>
-      </div>
+
+      <DashboardSummary
+        eventName={event.name}
+        timing={timing}
+        gift={gift}
+        rsvp={rsvp}
+        pendingPixCount={pendingPixCount}
+      />
+
+      <DashboardQuickActions eventSlug={event.slug} hasRsvp={rsvp != null} pendingPixCount={pendingPixCount} />
+
+      <DashboardDetails financial={financial} topItems={gift.topItems} rsvp={rsvp} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {sections.map((section) => (
@@ -108,31 +105,6 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
-    </div>
-  )
-}
-
-/**
- * Stat local, e não o `Stat` do kit, de propósito: este rótulo precisa de
- * `break-words` e de um tamanho menor no mobile — "CONFIRMADOS" é uma palavra
- * só, sem espaço pra quebrar, e estoura a coluna do grid em 390px. O Stat do
- * kit resolve o caso geral (hero, cartões largos); este resolve o caso de três
- * colunas em tela estreita.
- */
-function Stat({ label, value, warn = false }: { label: string; value: number; warn?: boolean }) {
-  return (
-    // min-w-0 é o que impede o rótulo de "PIX pendente" de vazar pra fora da
-    // coluna do grid em telas estreitas (grid items têm min-width:auto por
-    // padrão, o que ignora a largura da track ao decidir quebrar linha).
-    <div className="min-w-0">
-      <p
-        className={`font-display text-display-md leading-none ${warn ? 'text-warning' : 'text-ink-deep'}`}
-      >
-        {value}
-      </p>
-      <p className="mt-1 break-words text-[10px] uppercase leading-snug tracking-[0.03em] text-ink-soft sm:text-xs sm:tracking-[0.08em]">
-        {label}
-      </p>
     </div>
   )
 }

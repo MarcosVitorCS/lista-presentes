@@ -108,61 +108,80 @@ export async function EventHome({ slug }: { slug: string }) {
 
       {/* ---------- Hero ---------- */}
       {/*
-        Hierarquia do hero, de cima pra baixo: retrato → ocasião → nomes →
-        frase → data → contagem → ação. Antes a data pontilhada e a contagem
-        tinham peso tipográfico parecido e disputavam a atenção; agora a data
-        é legenda (caption, tracking largo) e a contagem é o número grande.
+        Hierarquia do hero, de cima pra baixo (empilhado, <lg): retrato →
+        ocasião → nomes → frase → data → contagem → ação. A partir de lg, com
+        foto, a composição vira duas colunas assimétricas (texto à esquerda,
+        foto grande à direita) — mesmo breakpoint usado no catálogo (item 1
+        desta rodada) pro mesmo raciocínio: abaixo de lg o bloco de texto
+        (heading com "&" decorativo, eyebrow, descrição, data, countdown)
+        precisa da largura cheia pra não espremer contra a foto. Sem foto,
+        colapsa pro layout 100% texto de sempre — nunca reserva vão vazio.
+        O halo (.hero-glow, ancorado em 82% -10% no CSS) já cai perto de onde
+        a foto fica nessa composição, não precisa reposicionar nada.
       */}
       <Section tone="ink-deep" rhythm="lg" className="hero-glow">
-        <div className="flex flex-col items-center gap-6 text-center sm:gap-7">
+        <div
+          className={`flex flex-col items-center gap-7 text-center sm:gap-8 ${
+            event.image_url ? 'lg:flex-row lg:items-center lg:gap-14 lg:text-left' : ''
+          }`}
+        >
           {event.image_url && (
-            // eslint-disable-next-line @next/next/no-img-element -- vem do Supabase Storage, dimensão fixa via CSS
+            // eslint-disable-next-line @next/next/no-img-element -- vem do Supabase Storage; fetchPriority/loading explícitos porque é a imagem LCP da página
             <img
               src={event.image_url}
               alt={event.name}
-              className="h-28 w-28 rounded-full border-2 border-accent object-cover sm:h-32 sm:w-32"
+              fetchPriority="high"
+              loading="eager"
+              className="h-36 w-36 shrink-0 rounded-full border-2 border-accent object-cover shadow-overlay sm:h-40 sm:w-40 lg:order-2 lg:h-auto lg:w-[42%] lg:max-w-none lg:aspect-[3/4] lg:rounded-[var(--radius-lg)] lg:border lg:border-accent/40"
             />
           )}
-          <Eyebrow className="text-accent">{event.hero_label}</Eyebrow>
-          <Heading as="h1" size="xl" className="text-on-deep">
-            {event.name.split(' & ').map((part, i, arr) => (
-              <span key={i}>
-                {part}
-                {i < arr.length - 1 && (
-                  <em className="px-1 font-normal not-italic text-on-deep-soft">&amp;</em>
-                )}
-              </span>
-            ))}
-          </Heading>
-          <p className="max-w-[34ch] text-balance text-body-md text-on-deep-soft sm:text-body-lg">
-            {event.description || 'Estamos contando os dias para viver esse momento com você.'}
-          </p>
 
-          {formattedDate && (
-            <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-on-deep-soft">
-              <span>{formattedDate[0]}</span>
-              <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
-              <span>{formattedDate[1]}</span>
-              <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
-              <span>{formattedDate[2]}</span>
-            </div>
-          )}
+          <div
+            className={`flex flex-col items-center gap-7 text-center sm:gap-8 ${
+              event.image_url ? 'lg:order-1 lg:flex-1 lg:items-start lg:text-left' : ''
+            }`}
+          >
+            <Eyebrow className="text-accent">{event.hero_label}</Eyebrow>
+            <Heading as="h1" size="xl" className="text-on-deep">
+              {event.name.split(' & ').map((part, i, arr) => (
+                <span key={i}>
+                  {part}
+                  {i < arr.length - 1 && (
+                    <em className="px-1 font-normal not-italic text-on-deep-soft">&amp;</em>
+                  )}
+                </span>
+              ))}
+            </Heading>
+            <p className="max-w-[34ch] text-balance text-body-md text-on-deep-soft sm:text-body-lg">
+              {event.description || 'Estamos contando os dias para viver esse momento com você.'}
+            </p>
 
-          {event.event_date && (
-            <div className="mt-2">
-              <Countdown targetDate={`${event.event_date}T00:00:00`} />
-            </div>
-          )}
+            {formattedDate && (
+              <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-on-deep-soft">
+                <span>{formattedDate[0]}</span>
+                <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
+                <span>{formattedDate[1]}</span>
+                <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
+                <span>{formattedDate[2]}</span>
+              </div>
+            )}
 
-          {listsWithCounts.length > 0 && (
-            <a
-              href="#lista-de-presentes"
-              className={buttonVariants({ variant: 'ghost-dark', className: 'mt-4' })}
-            >
-              Ver a lista de presentes
-              <ArrowRight size={16} strokeWidth={1.8} aria-hidden="true" />
-            </a>
-          )}
+            {event.event_date && (
+              <div className="mt-2">
+                <Countdown targetDate={`${event.event_date}T00:00:00`} />
+              </div>
+            )}
+
+            {listsWithCounts.length > 0 && (
+              <a
+                href="#lista-de-presentes"
+                className={buttonVariants({ variant: 'ghost-dark', className: 'mt-4' })}
+              >
+                Ver a lista de presentes
+                <ArrowRight size={16} strokeWidth={1.8} aria-hidden="true" />
+              </a>
+            )}
+          </div>
         </div>
       </Section>
 

@@ -22,6 +22,10 @@ export const regenerateInvitationSchema = z.object({
   invitationId: z.uuid(),
 })
 
+export const deleteInvitationSchema = z.object({
+  invitationId: z.uuid(),
+})
+
 export const addPartyMemberSchema = z.object({
   invitationId: z.uuid(),
   name: z.string().trim().min(1, 'Informe um nome.').max(120),

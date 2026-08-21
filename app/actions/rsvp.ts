@@ -6,6 +6,7 @@ import { verifyAdminSession } from '@/lib/dal/admin-session'
 import {
   createInvitationSchema,
   regenerateInvitationSchema,
+  deleteInvitationSchema,
   addPartyMemberSchema,
   removePartyMemberSchema,
   renamePartyMemberSchema,
@@ -117,6 +118,39 @@ export async function regenerateInvitation(
 
   revalidatePath('/admin/dashboard/confirmacoes')
   return { success: true, inviteToken: token }
+}
+
+export type DeleteInvitationActionState = { error?: string; success?: boolean } | undefined
+
+/**
+ * Exclui um convite inteiro (e seus rsvp_party_members, via cascade no
+ * banco) — pra remover um convite de teste ou criado por engano. Diferente
+ * de regenerar (troca só o link, preserva respostas) ou de cancelar uma
+ * reserva (soft: linha preservada como histórico): aqui não sobra nada.
+ * Não afeta o guest, que pode ter outro convite ou reserva.
+ */
+export async function deleteInvitation(
+  _prevState: DeleteInvitationActionState,
+  formData: FormData
+): Promise<DeleteInvitationActionState> {
+  await verifyAdminSession()
+
+  const parsed = deleteInvitationSchema.safeParse({ invitationId: formData.get('invitationId') })
+  if (!parsed.success) {
+    return { error: 'Convite inválido.' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('delete_invitation', {
+    p_invitation_id: parsed.data.invitationId,
+  })
+
+  if (error) {
+    return { error: friendlyRsvpError(error.message) }
+  }
+
+  revalidatePath('/admin/dashboard/confirmacoes')
+  return { success: true }
 }
 
 export type PartyMemberActionState = { error?: string; success?: boolean } | undefined

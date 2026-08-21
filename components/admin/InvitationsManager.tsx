@@ -5,6 +5,7 @@ import { ChevronDown, Pencil, X } from 'lucide-react'
 import {
   createInvitation,
   regenerateInvitation,
+  deleteInvitation,
   addPartyMember,
   removePartyMember,
   renamePartyMember,
@@ -223,12 +224,24 @@ function InvitationRow({ row }: { row: InvitationRowData }) {
   const regenFormRef = useRef<HTMLFormElement>(null)
   const confirmTitleId = useId()
 
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deleteState, deleteAction, deletePending] = useActionState(deleteInvitation, undefined)
+  const deleteFormRef = useRef<HTMLFormElement>(null)
+  const deleteConfirmTitleId = useId()
+
   // Era window.confirm: diálogo do sistema, sem o nome do convidado em
   // destaque e sem dizer que o link antigo morre na hora. A ação é
   // destrutiva e irreversível, então vale o Dialog do kit.
   function confirmRegenerate() {
     setConfirmOpen(false)
     regenFormRef.current?.requestSubmit()
+  }
+
+  // Diferente de regenerar: aqui não sobra nada, nem histórico — por isso
+  // um diálogo de confirmação próprio, com o aviso mais forte.
+  function confirmDelete() {
+    setDeleteConfirmOpen(false)
+    deleteFormRef.current?.requestSubmit()
   }
 
   return (
@@ -275,7 +288,7 @@ function InvitationRow({ row }: { row: InvitationRowData }) {
 
             <AddMemberForm invitationId={row.invitationId} />
 
-            <div className="flex items-center gap-3 pt-1">
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               <Button
                 type="button"
                 variant="line"
@@ -285,13 +298,25 @@ function InvitationRow({ row }: { row: InvitationRowData }) {
               >
                 Regenerar convite
               </Button>
+              <Button
+                type="button"
+                variant="line-danger"
+                size="sm"
+                loading={deletePending}
+                onClick={() => setDeleteConfirmOpen(true)}
+              >
+                Excluir convite
+              </Button>
             </div>
             <form ref={regenFormRef} action={regenAction} className="hidden">
               <input type="hidden" name="invitationId" value={row.invitationId} />
             </form>
-            {regenState?.error && (
+            <form ref={deleteFormRef} action={deleteAction} className="hidden">
+              <input type="hidden" name="invitationId" value={row.invitationId} />
+            </form>
+            {(regenState?.error || deleteState?.error) && (
               <p role="alert" className="text-caption font-medium text-danger">
-                {regenState.error}
+                {regenState?.error ?? deleteState?.error}
               </p>
             )}
 
@@ -319,6 +344,32 @@ function InvitationRow({ row }: { row: InvitationRowData }) {
                 </Button>
                 <Button type="button" onClick={confirmRegenerate} loading={regenPending}>
                   Regenerar convite
+                </Button>
+              </div>
+            </Dialog>
+
+            <Dialog
+              open={deleteConfirmOpen}
+              onClose={() => setDeleteConfirmOpen(false)}
+              labelledBy={deleteConfirmTitleId}
+            >
+              <h3 id={deleteConfirmTitleId} className="font-display text-xl text-ink">
+                Excluir o convite de {row.guestName}?
+              </h3>
+              <p className="mt-2 text-body-md text-ink-soft">
+                O convite, o link e as respostas d{row.totalAuthorized === 1 ? 'a' : 'as'} {row.totalAuthorized}{' '}
+                {row.totalAuthorized === 1 ? 'pessoa autorizada' : 'pessoas autorizadas'} são apagados de vez.
+              </p>
+              <p className="mt-3 rounded-[var(--radius)] bg-danger-soft px-3 py-2 text-xs text-danger">
+                Diferente de regenerar: isso não pode ser desfeito, nem preserva histórico. Use pra remover
+                um convite de teste ou criado por engano.
+              </p>
+              <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button type="button" variant="line" onClick={() => setDeleteConfirmOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="button" variant="danger" onClick={confirmDelete} loading={deletePending}>
+                  Excluir convite
                 </Button>
               </div>
             </Dialog>

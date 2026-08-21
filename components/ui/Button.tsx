@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from "react";
 import { cx } from "./utils";
 
-export type ButtonVariant = "solid" | "accent" | "line" | "ghost-dark";
+export type ButtonVariant = "solid" | "accent" | "line" | "ghost-dark" | "danger" | "line-danger";
 export type ButtonSize = "md" | "sm";
 
 // min-h-11 (44px) em md e min-h-10 (40px) em sm: touch target adequado no
@@ -20,6 +20,14 @@ const variants: Record<ButtonVariant, string> = {
   accent: "bg-accent text-ink-deep hover:bg-accent-strong hover:shadow-float",
   line: "border border-canvas-line text-ink bg-transparent hover:border-accent-strong hover:text-accent-text",
   "ghost-dark": "border border-on-deep-soft/40 text-on-deep bg-transparent hover:border-accent hover:bg-accent/10",
+  // Ações destrutivas de verdade (excluir, não só cancelar/desfazer) — variante
+  // própria em vez de sobrescrever solid/line via className: cx() aqui é só
+  // concatenação (sem merge de conflito Tailwind), então bg-danger por cima de
+  // bg-ink-deep do "solid" perderia dependendo da ordem que o Tailwind gera o
+  // CSS, não da ordem que aparece no className. 5.82:1 de contraste
+  // text-on-deep/danger, confirmado.
+  danger: "bg-danger text-on-deep hover:shadow-float",
+  "line-danger": "border border-danger/40 text-danger bg-transparent hover:border-danger hover:bg-danger-soft",
 };
 
 const sizes: Record<ButtonSize, string> = {

@@ -409,6 +409,10 @@ export type Database = {
         Args: { p_invitation_id: string; p_token_hash: string }
         Returns: Database['public']['Tables']['invitations']['Row']
       }
+      delete_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: undefined
+      }
       resolve_invitation: {
         Args: { p_token_hash: string }
         // Idem create_invitation: returns table(...), wire format é array,

@@ -29,13 +29,7 @@ function formatPrice(value: number | null) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
-export function ReservationRow({
-  reservation,
-  readOnly = false,
-}: {
-  reservation: ReservationWithRelations
-  readOnly?: boolean
-}) {
+export function ReservationRow({ reservation }: { reservation: ReservationWithRelations }) {
   const [confirmState, confirmAction, confirmPending] = useActionState(confirmReservation, undefined)
   const [cancelState, cancelAction, cancelPending] = useActionState(cancelReservation, undefined)
   useActionToast(confirmState, 'PIX confirmado!')
@@ -66,7 +60,7 @@ export function ReservationRow({
       <div className="flex shrink-0 flex-wrap items-center gap-2">
         <Badge tone={STATUS_TONE[reservation.status]}>{STATUS_LABEL[reservation.status]}</Badge>
 
-        {!readOnly && reservation.status === 'pending' && reservation.fulfillment_method === 'pix' && (
+        {reservation.status === 'pending' && reservation.fulfillment_method === 'pix' && (
           <form action={confirmAction}>
             <input type="hidden" name="reservationId" value={reservation.id} />
             <Button type="submit" variant="solid" size="sm" loading={confirmPending} disabled={busy}>
@@ -75,7 +69,12 @@ export function ReservationRow({
           </form>
         )}
 
-        {!readOnly && reservation.status !== 'cancelled' && (
+        {/* Vale pra reserva pendente OU confirmada (inclusive física, que
+            nasce confirmada direto e nunca passa por pending) — só uma já
+            cancelada não tem mais o que desfazer. A RPC em si já permite
+            cancelar qualquer status != cancelled; antes só o front escondia
+            esse botão pras reservas do Histórico, sem motivo real. */}
+        {reservation.status !== 'cancelled' && (
           <form action={cancelAction}>
             <input type="hidden" name="reservationId" value={reservation.id} />
             <Button type="submit" variant="line" size="sm" loading={cancelPending} disabled={busy}>

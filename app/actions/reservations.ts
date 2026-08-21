@@ -122,6 +122,10 @@ export async function cancelReservation(
     return { error: friendlyError(error.message) }
   }
 
+  // Cancelar libera estoque (quantity_reserved diminui) — sem revalidar a
+  // lista pública, o item cancelado só voltaria a aparecer como disponível
+  // na próxima revalidação natural daquela rota, não imediatamente.
   revalidatePath('/admin/dashboard')
+  revalidatePath('/evento/[slug]/[list]', 'page')
   return { success: true }
 }

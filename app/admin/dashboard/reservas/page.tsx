@@ -53,7 +53,7 @@ export default async function AdminReservasPage() {
         ) : (
           <div className="flex flex-col gap-3">
             {others.map((reservation) => (
-              <ReservationRow key={reservation.id} reservation={reservation} readOnly />
+              <ReservationRow key={reservation.id} reservation={reservation} />
             ))}
           </div>
         )}

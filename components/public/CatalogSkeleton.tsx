@@ -10,13 +10,13 @@ export function CatalogSkeleton() {
         <Skeleton className="h-11 w-full rounded-full" />
         <Skeleton className="h-3 w-40" />
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 lg:gap-6">
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="flex flex-col gap-2.5 rounded-[var(--radius-lg)] border border-canvas-line p-3 sm:gap-3 sm:p-4"
+            className="flex flex-col gap-2.5 rounded-[var(--radius-lg)] border border-canvas-line p-3 sm:gap-3 sm:p-4 lg:gap-4 lg:p-5"
           >
-            <Skeleton className="h-24 w-full sm:h-40" />
+            <Skeleton className="h-24 w-full sm:h-40 lg:h-auto lg:aspect-[4/3]" />
             <Skeleton className="h-4 w-2/3" />
             <Skeleton className="h-3 w-1/3" />
             <Skeleton className="h-11 w-full" />

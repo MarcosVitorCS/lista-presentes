@@ -219,7 +219,11 @@ export function GiftCatalog({
       ) : filteredAvailable.length === 0 ? (
         <p className="text-caption text-ink-soft">Nenhum presente disponível com esses critérios.</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+        // lg trava em 3 colunas de propósito (nunca 4, mesmo em telas
+        // enormes) — o objetivo desta rodada é presente maior por card, não
+        // mais presentes por linha; ver GiftItemCard/QuotaItemCard pro resto
+        // do tratamento "desktop" (imagem por aspect-ratio, mais respiro).
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 lg:gap-6">
           {filteredAvailable.map((item) => (
             <ItemCard key={item.id} item={item} pix={pix} />
           ))}

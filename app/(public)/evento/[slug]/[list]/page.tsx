@@ -7,6 +7,7 @@ import { GiftCatalog } from '@/components/public/GiftCatalog'
 import { PublicHeader } from '@/components/public/PublicHeader'
 import { EmptyState } from '@/components/public/EmptyState'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { LIST_MAIN_CLASS } from '@/lib/ui/list-layout'
 
 /**
  * Rota canônica de uma lista de presentes — substitui as antigas /casamento
@@ -62,7 +63,7 @@ export default async function ListaPage(props: PageProps<'/evento/[slug]/[list]'
   return (
     <>
       <PublicHeader homeHref={`/evento/${eventSlug}`} />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-5 py-[var(--spacing-section)] sm:px-8">
+      <main className={LIST_MAIN_CLASS}>
         <PageHeader eyebrow={event.name} title={list.name} description={list.description ?? undefined} />
         {list.type === 'quota' && (
           <p className="text-caption text-ink-soft">

@@ -6,6 +6,15 @@ import { Dialog } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { Input, Label } from '@/components/ui/Input'
 import { ReservationProgress } from '@/components/public/ReservationProgress'
+import { GiftDialogSummary } from '@/components/public/GiftDialogSummary'
+import {
+  GIFT_CARD_CLASS,
+  GIFT_CARD_DESCRIPTION_CLASS,
+  GIFT_CARD_IMAGE_WRAPPER_CLASS,
+  GIFT_CARD_TITLE_CLASS,
+  formatGiftPrice,
+  giftCardImageClass,
+} from '@/components/public/gift-card-shared'
 import type { Database } from '@/types/database'
 
 type GiftItemPublic = Database['public']['Views']['gift_items_public']['Row']
@@ -14,11 +23,6 @@ type PixInfo = {
   key: string | null
   ownerName: string | null
   qrCodeUrl: string | null
-}
-
-function formatPrice(value: number | null) {
-  if (value == null) return null
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
 export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInfo }) {
@@ -46,10 +50,7 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
   }
 
   return (
-    <div
-      ref={cardRef}
-      className="flex flex-col gap-2.5 rounded-[var(--radius-lg)] border border-canvas-line bg-canvas p-3 transition-all duration-[var(--duration-hover)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-accent-strong/50 hover:shadow-float sm:gap-3 sm:p-4"
-    >
+    <div ref={cardRef} className={GIFT_CARD_CLASS}>
       {item.image_url && (
         // Mesma ideia de entrada adicional do GiftItemCard — aqui só existe
         // um método (PIX), então o clique já é o próprio setOpen(true).
@@ -57,15 +58,11 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
           type="button"
           disabled={soldOut}
           onClick={() => setOpen(true)}
-          className="group relative overflow-hidden rounded-[var(--radius)] disabled:cursor-default"
+          className={`${GIFT_CARD_IMAGE_WRAPPER_CLASS} disabled:cursor-default`}
           aria-label={soldOut ? item.name : `Ver ${item.name}`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- imagem vinda do Supabase Storage */}
-          <img
-            src={item.image_url}
-            alt=""
-            className={`h-24 w-full object-cover transition-transform duration-[var(--duration-hover)] ease-[var(--ease-out)] sm:h-40 ${soldOut ? '' : 'group-hover:scale-[1.03]'}`}
-          />
+          <img src={item.image_url} alt="" className={giftCardImageClass(!soldOut)} />
           {!soldOut && (
             <span className="absolute inset-0 bg-ink-deep/0 transition-colors duration-[var(--duration-hover)] ease-[var(--ease-out)] group-hover:bg-ink-deep/10" />
           )}
@@ -73,13 +70,11 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
       )}
 
       <div className="flex flex-col gap-0.5">
-        <h2 className="font-sans text-sm font-semibold text-ink sm:text-base">{item.name}</h2>
+        <h2 className={GIFT_CARD_TITLE_CLASS}>{item.name}</h2>
         <p className="text-sm font-semibold tabular-nums text-accent-text">
-          {formatPrice(item.unit_price)} por cota
+          {formatGiftPrice(item.unit_price)} por cota
         </p>
-        {item.description && (
-          <p className="line-clamp-2 text-xs text-ink-soft sm:text-caption">{item.description}</p>
-        )}
+        {item.description && <p className={GIFT_CARD_DESCRIPTION_CLASS}>{item.description}</p>}
         {item.purchase_url && (
           <a
             href={item.purchase_url}
@@ -158,10 +153,7 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
         originRef={cardRef}
         className="gift-dialog"
       >
-        <h3 id={titleId} className="font-display text-xl text-ink">
-          Seu presente
-        </h3>
-        <p className="mt-1 text-caption text-ink-soft">{item.name}</p>
+        <GiftDialogSummary item={item} titleId={titleId} />
 
         <div className="mt-4 flex flex-col gap-1.5">
           <Label htmlFor={quantityId}>Quantas cotas?</Label>
@@ -180,7 +172,7 @@ export function QuotaItemCard({ item, pix }: { item: GiftItemPublic; pix: PixInf
         </div>
 
         <dl className="mt-4 flex flex-col gap-2 text-sm">
-          {total != null && <Row label="Valor" value={formatPrice(total) ?? ''} />}
+          {total != null && <Row label="Valor" value={formatGiftPrice(total) ?? ''} />}
           <Row label="Forma" value="PIX" />
         </dl>
 

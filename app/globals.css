@@ -315,6 +315,16 @@ body::before {
  * é assim que max-width/margin abaixo conseguem sobrescrever o
  * w-[min(92vw,440px)] padrão do Dialog em telas pequenas sem !important.
  */
+/* overflow:hidden aqui (não na própria imagem, via rounded-t) é o que faz o
+   GiftDialogSummary conseguir sangrar a imagem até a borda do modal com o
+   raio certo — a borda do <dialog> é 1px, então "o raio certo" da imagem
+   seria raio-1px, não var(--radius-lg) direto; deixar o corte pro container
+   evita essa matemática e não afeta a sombra do próprio dialog (box-shadow
+   não é recortada pelo overflow do elemento que a projeta). */
+.gift-dialog {
+  overflow: hidden;
+}
+
 .gift-dialog::backdrop {
   background-color: color-mix(in srgb, var(--color-ink-deep) 60%, transparent);
   backdrop-filter: blur(3px);
